@@ -88,6 +88,7 @@ export default function Workout() {
   const [routinesError, setRoutinesError] = useState("");
   const [editing, setEditing] = useState<{ routine: Routine; isNew: boolean } | null>(null);
   const [menuRoutine, setMenuRoutine] = useState<Routine | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Routine | null>(null);
 
   // Logger-local UI state
   const [showPicker, setShowPicker] = useState(false);
@@ -134,8 +135,13 @@ export default function Workout() {
     setEditing({ routine, isNew: false });
   };
 
-  const removeRoutine = async (routine: Routine) => {
+  const askDeleteRoutine = (routine: Routine) => {
     setMenuRoutine(null);
+    setConfirmDelete(routine);
+  };
+
+  const removeRoutine = async (routine: Routine) => {
+    setConfirmDelete(null);
     try { await deleteRoutine(routine.id); } catch (e: any) { setRoutinesError(e.message); }
   };
 
@@ -300,7 +306,7 @@ export default function Workout() {
                 <Ionicons name="create-outline" size={20} color="#6C63FF" />
                 <Text style={styles.menuOptionText}>Edit routine</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.menuOption} onPress={() => menuRoutine && removeRoutine(menuRoutine)}>
+              <TouchableOpacity style={styles.menuOption} onPress={() => menuRoutine && askDeleteRoutine(menuRoutine)}>
                 <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
                 <Text style={[styles.menuOptionText, { color: "#FF6B6B" }]}>Delete routine</Text>
               </TouchableOpacity>
@@ -309,6 +315,26 @@ export default function Workout() {
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
+        </Modal>
+
+        {/* Confirm delete routine */}
+        <Modal visible={!!confirmDelete} transparent animationType="fade" onRequestClose={() => setConfirmDelete(null)}>
+          <View style={styles.confirmOverlay}>
+            <View style={styles.confirmBox}>
+              <Text style={styles.confirmTitle}>Delete routine?</Text>
+              <Text style={styles.confirmMsg}>
+                “{confirmDelete?.name}” will be permanently deleted. This can’t be undone.
+              </Text>
+              <View style={styles.confirmBtnRow}>
+                <TouchableOpacity style={styles.confirmCancel} onPress={() => setConfirmDelete(null)}>
+                  <Text style={styles.confirmCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.confirmDeleteBtn} onPress={() => confirmDelete && removeRoutine(confirmDelete)}>
+                  <Text style={styles.confirmDeleteText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         </Modal>
       </View>
     );
@@ -491,6 +517,8 @@ const styles = StyleSheet.create({
   confirmCancelText: { color: "#888", fontSize: 15, fontWeight: "600" },
   confirmFinishBtn: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: "#00C9A7", alignItems: "center" },
   confirmFinishText: { color: "#0D0D0D", fontSize: 15, fontWeight: "bold" },
+  confirmDeleteBtn: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: "#FF6B6B", alignItems: "center" },
+  confirmDeleteText: { color: "#0D0D0D", fontSize: 15, fontWeight: "bold" },
 
   // Active workout / exercise cards
   exerciseCard: { marginHorizontal: 16, marginBottom: 16, borderRadius: 16, padding: 18, borderWidth: 1, borderColor: "#2A2A4A" },
