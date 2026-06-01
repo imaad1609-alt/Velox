@@ -3,7 +3,6 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
-  Alert,
   Animated,
   FlatList,
   Modal,
@@ -23,6 +22,7 @@ import {
   MUSCLE_GROUPS,
   MuscleGroup,
 } from "../constants/exercises";
+import { saveWorkout } from "../utils/workouts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type LoggedSet = { weight: string; reps: string; done: boolean };
@@ -253,6 +253,9 @@ export default function Workout() {
   const [showTimer, setShowTimer] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const workoutName = "My Workout";
 
   useEffect(() => {
@@ -315,10 +318,34 @@ export default function Workout() {
   };
 
   const finishWorkout = () => {
-    Alert.alert("Finish Workout?", `${exercises.length} exercises logged in ${formatDuration(elapsed)}.`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Finish", onPress: () => { setIsWorkingOut(false); setExercises([]); setStartTime(null); setElapsed(0); } },
-    ]);
+    setSaveError("");
+    setShowFinishConfirm(true);
+  };
+
+  const confirmFinish = async () => {
+    setSaving(true);
+    setSaveError("");
+    try {
+      await saveWorkout({
+        name: workoutName,
+        durationSeconds: elapsed,
+        date: Date.now(),
+        exercises: exercises.map((item) => ({
+          name: item.exercise.name,
+          primaryMuscle: item.exercise.primaryMuscle,
+          sets: item.sets.map((s) => ({ weight: s.weight, reps: s.reps })),
+        })),
+      });
+      setShowFinishConfirm(false);
+      setIsWorkingOut(false);
+      setExercises([]);
+      setStartTime(null);
+      setElapsed(0);
+    } catch (error: any) {
+      setSaveError(error.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (showPicker) return <ExercisePicker onSelect={addExercise} onClose={() => setShowPicker(false)} />;
@@ -403,6 +430,31 @@ export default function Workout() {
         </TouchableOpacity>
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Finish confirmation — works on both phone and web */}
+      <Modal visible={showFinishConfirm} transparent animationType="fade">
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmBox}>
+            <Text style={styles.confirmTitle}>Finish Workout?</Text>
+            <Text style={styles.confirmMsg}>
+              {exercises.length} {exercises.length === 1 ? "exercise" : "exercises"} logged in {formatDuration(elapsed)}.
+            </Text>
+            {saveError ? <Text style={styles.confirmError}>{saveError}</Text> : null}
+            <View style={styles.confirmBtnRow}>
+              <TouchableOpacity
+                style={styles.confirmCancel}
+                onPress={() => setShowFinishConfirm(false)}
+                disabled={saving}
+              >
+                <Text style={styles.confirmCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.confirmFinishBtn} onPress={confirmFinish} disabled={saving}>
+                <Text style={styles.confirmFinishText}>{saving ? "Saving..." : "Finish"}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -414,6 +466,16 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 14, color: "#888", marginTop: 2 },
   durationText: { fontSize: 15, color: "#6C63FF", fontWeight: "600", marginTop: 2, fontVariant: ["tabular-nums"] },
   finishBtn: { color: "#00C9A7", fontSize: 16, fontWeight: "600" },
+  confirmOverlay: { flex: 1, backgroundColor: "#000000CC", justifyContent: "center", alignItems: "center", padding: 32 },
+  confirmBox: { backgroundColor: "#1A1A2E", borderRadius: 20, padding: 24, width: "100%", maxWidth: 360, borderWidth: 1, borderColor: "#2A2A4A" },
+  confirmTitle: { color: "#FFF", fontSize: 20, fontWeight: "bold", marginBottom: 8 },
+  confirmMsg: { color: "#AAA", fontSize: 15, lineHeight: 21, marginBottom: 8 },
+  confirmError: { color: "#FF6B6B", fontSize: 13, marginBottom: 8 },
+  confirmBtnRow: { flexDirection: "row", gap: 12, marginTop: 12 },
+  confirmCancel: { flex: 1, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: "#2A2A4A", alignItems: "center" },
+  confirmCancelText: { color: "#888", fontSize: 15, fontWeight: "600" },
+  confirmFinishBtn: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: "#00C9A7", alignItems: "center" },
+  confirmFinishText: { color: "#0D0D0D", fontSize: 15, fontWeight: "bold" },
   startBtn: { marginHorizontal: 16, marginBottom: 24, borderRadius: 16, overflow: "hidden" },
   startBtnGradient: { padding: 18, alignItems: "center" },
   startBtnText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },

@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { initializeAuth, inMemoryPersistence } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD4sHSEMbDI5DTpBkZWzsZrtSEQ3P_PVLI",
@@ -15,3 +16,6 @@ const app = initializeApp(firebaseConfig);
 export const auth = initializeAuth(app, {
   persistence: inMemoryPersistence,
 });
+
+// Cloud database — stores workouts/nutrition per user, synced across devices
+export const db = getFirestore(app);
