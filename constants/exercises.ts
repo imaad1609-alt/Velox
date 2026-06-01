@@ -20,6 +20,9 @@ export type Exercise = {
   equipment: Equipment;
   difficulty: Difficulty;
   instructions: string[];
+  // Optional demo media (GIF or image) URL. Empty in the bundled catalog;
+  // can be set per-exercise in Firestore later without an app update.
+  imageUrl?: string | null;
 };
 
 export const MUSCLE_COLORS: Record<string, string> = {

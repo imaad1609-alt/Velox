@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import {
@@ -14,11 +15,11 @@ import {
   Equipment,
   EQUIPMENT_TYPES,
   Exercise,
-  EXERCISES,
   MUSCLE_COLORS,
   MUSCLE_GROUPS,
   MuscleGroup,
 } from "../constants/exercises";
+import { useExercises } from "../contexts/ExercisesProvider";
 import { MuscleMap } from "./MuscleMap";
 
 // ─── Muscle Chip ─────────────────────────────────────────────────────────────
@@ -38,8 +39,9 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
   const [showMuscleFilter, setShowMuscleFilter] = useState(false);
   const [showEquipFilter, setShowEquipFilter] = useState(false);
   const [detail, setDetail] = useState<Exercise | null>(null);
+  const catalog = useExercises();
 
-  const filtered = EXERCISES.filter((e) => {
+  const filtered = catalog.filter((e) => {
     const matchSearch = e.name.toLowerCase().includes(search.toLowerCase());
     const matchMuscle = muscle === "All" || e.primaryMuscle === muscle;
     const matchEquip = equipment === "All" || e.equipment === equipment;
@@ -159,6 +161,12 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
                 <ScrollView showsVerticalScrollIndicator={false}>
                   <Text style={styles.detailName}>{detail.name}</Text>
 
+                  {detail.imageUrl ? (
+                    <View style={styles.mediaBox}>
+                      <Image source={{ uri: detail.imageUrl }} style={styles.media} contentFit="contain" />
+                    </View>
+                  ) : null}
+
                   <Text style={styles.detailLabel}>TARGET MUSCLES</Text>
                   <View style={styles.muscleMapBox}>
                     <MuscleMap
@@ -259,6 +267,8 @@ const styles = StyleSheet.create({
   detailName: { color: "#FFF", fontSize: 22, fontWeight: "bold", marginBottom: 16 },
   detailLabel: { color: "#888", fontSize: 11, letterSpacing: 1.5, fontWeight: "700", marginBottom: 8 },
   muscleMapBox: { backgroundColor: "#1A1A2E", borderRadius: 12, paddingVertical: 16, marginBottom: 16 },
+  mediaBox: { backgroundColor: "#FFF", borderRadius: 12, marginBottom: 16, overflow: "hidden" },
+  media: { width: "100%", height: 220 },
   metaRow: { flexDirection: "row", gap: 32, marginTop: 16, padding: 16, backgroundColor: "#1A1A2E", borderRadius: 12 },
   metaValue: { color: "#FFF", fontSize: 15, fontWeight: "bold", marginTop: 4 },
   stepRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: 12 },

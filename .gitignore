@@ -33,6 +33,9 @@ yarn-error.*
 # local env files
 .env*.local
 
+# Firebase admin service-account key (used by scripts/seedExercises.ts)
+serviceAccountKey.json
+
 # typescript
 *.tsbuildinfo
 

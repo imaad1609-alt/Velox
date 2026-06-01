@@ -4,6 +4,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { MiniWorkoutBar } from "../components/MiniWorkoutBar";
+import { ExercisesProvider } from "../contexts/ExercisesProvider";
 import { WorkoutProvider } from "../contexts/WorkoutContext";
 import { auth } from "../firebaseConfig";
 import Login from "./login";
@@ -25,6 +26,7 @@ export default function Layout() {
   if (!user) return <Login />;
 
   return (
+    <ExercisesProvider>
     <WorkoutProvider>
       <View style={{ flex: 1 }}>
         <Tabs
@@ -45,5 +47,6 @@ export default function Layout() {
         <MiniWorkoutBar />
       </View>
     </WorkoutProvider>
+    </ExercisesProvider>
   );
 }
