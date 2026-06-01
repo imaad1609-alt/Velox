@@ -16,7 +16,7 @@ import { ExercisePicker } from "../components/ExercisePicker";
 import { RoutineEditor } from "../components/RoutineEditor";
 import { Exercise, MUSCLE_COLORS } from "../constants/exercises";
 import { LoggedExercise, useWorkout } from "../contexts/WorkoutContext";
-import { createRoutine, deleteRoutine, Routine, subscribeRoutines } from "../utils/routines";
+import { createRoutine, deleteRoutine, Routine, subscribeRoutines, updateRoutine } from "../utils/routines";
 import { saveWorkout } from "../utils/workouts";
 
 // ─── Rest Timer ───────────────────────────────────────────────────────────────
@@ -95,6 +95,7 @@ export default function Workout() {
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [routineSaveState, setRoutineSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   useEffect(() => {
     Animated.parallel([
@@ -155,7 +156,7 @@ export default function Workout() {
       },
       sets: re.sets.map((s) => ({ weight: s.weight, reps: s.reps, done: false })),
     }));
-    workout.startWorkout(routine.name, loaded);
+    workout.startWorkout(routine.name, loaded, routine.id);
   };
 
   const startEmptyWorkout = () => workout.startWorkout("My Workout", []);
@@ -170,6 +171,32 @@ export default function Workout() {
     workout.toggleSet(ei, si);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setShowTimer(true);
+  };
+
+  // Reset the "Routine updated" indicator whenever the workout changes, so the
+  // button re-invites a save after further edits.
+  useEffect(() => { setRoutineSaveState("idle"); }, [workout.exercises]);
+
+  // Push the current workout's structure back into the routine it came from —
+  // e.g. you added an exercise mid-workout and want to keep it in the template.
+  const saveToRoutine = async () => {
+    if (!workout.sourceRoutineId) return;
+    setRoutineSaveState("saving");
+    try {
+      await updateRoutine(workout.sourceRoutineId, {
+        exercises: workout.exercises.map((item) => ({
+          exerciseId: item.exercise.id,
+          name: item.exercise.name,
+          primaryMuscle: item.exercise.primaryMuscle,
+          equipment: item.exercise.equipment,
+          sets: item.sets.map((s) => ({ weight: s.weight, reps: s.reps })),
+        })),
+      });
+      setRoutineSaveState("saved");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      setRoutineSaveState("error");
+    }
   };
 
   const finishWorkout = () => {
@@ -354,6 +381,36 @@ export default function Workout() {
         <TouchableOpacity style={styles.addExBtn} onPress={() => setShowPicker(true)}>
           <Text style={styles.addExText}>+ Add Exercise</Text>
         </TouchableOpacity>
+
+        {workout.sourceRoutineId && (
+          <TouchableOpacity
+            style={styles.updateRoutineBtn}
+            onPress={saveToRoutine}
+            disabled={routineSaveState === "saving" || routineSaveState === "saved"}
+          >
+            <Ionicons
+              name={routineSaveState === "saved" ? "checkmark-circle" : routineSaveState === "error" ? "alert-circle-outline" : "save-outline"}
+              size={18}
+              color={routineSaveState === "saved" ? "#00C9A7" : routineSaveState === "error" ? "#FF6B6B" : "#888"}
+            />
+            <Text
+              style={[
+                styles.updateRoutineText,
+                routineSaveState === "saved" && { color: "#00C9A7" },
+                routineSaveState === "error" && { color: "#FF6B6B" },
+              ]}
+            >
+              {routineSaveState === "saving"
+                ? "Updating routine…"
+                : routineSaveState === "saved"
+                ? "Routine updated"
+                : routineSaveState === "error"
+                ? "Couldn’t update — tap to retry"
+                : "Save changes to routine"}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         <View style={{ height: 40 }} />
       </ScrollView>
 
@@ -455,6 +512,8 @@ const styles = StyleSheet.create({
   addSetText: { color: "#6C63FF", fontSize: 14, fontWeight: "600" },
   addExBtn: { marginHorizontal: 16, padding: 18, borderRadius: 16, borderWidth: 1, borderColor: "#2A2A4A", alignItems: "center" },
   addExText: { color: "#6C63FF", fontSize: 16, fontWeight: "600" },
+  updateRoutineBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 16, marginTop: 10, paddingVertical: 14, borderRadius: 14, borderWidth: 1, borderColor: "#2A2A4A" },
+  updateRoutineText: { color: "#888", fontSize: 14, fontWeight: "600" },
 
   // Rest timer
   timerBox: { backgroundColor: "#1A1A2E", margin: 16, borderRadius: 16, padding: 20, alignItems: "center", borderWidth: 1, borderColor: "#6C63FF" },

@@ -11,8 +11,9 @@ type WorkoutContextValue = {
   name: string;
   exercises: LoggedExercise[];
   elapsed: number;        // seconds since start, ticks every second
+  sourceRoutineId: string | null; // the routine this workout was started from, if any
 
-  startWorkout: (name: string, exercises?: LoggedExercise[]) => void;
+  startWorkout: (name: string, exercises?: LoggedExercise[], routineId?: string | null) => void;
   endWorkout: () => void; // clear everything (used by finish + discard)
   minimize: () => void;
   expand: () => void;
@@ -44,6 +45,7 @@ export const WorkoutProvider = ({ children }: { children: React.ReactNode }) => 
   const [exercises, setExercises] = useState<LoggedExercise[]>([]);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
+  const [sourceRoutineId, setSourceRoutineId] = useState<string | null>(null);
 
   // Tick the duration every second while a workout is active.
   useEffect(() => {
@@ -52,12 +54,13 @@ export const WorkoutProvider = ({ children }: { children: React.ReactNode }) => 
     return () => clearInterval(t);
   }, [active, startTime]);
 
-  const startWorkout = (workoutName: string, initial: LoggedExercise[] = []) => {
+  const startWorkout = (workoutName: string, initial: LoggedExercise[] = [], routineId: string | null = null) => {
     setName(workoutName);
     setExercises(initial);
     setStartTime(Date.now());
     setElapsed(0);
     setMinimized(false);
+    setSourceRoutineId(routineId);
     setActive(true);
   };
 
@@ -67,6 +70,7 @@ export const WorkoutProvider = ({ children }: { children: React.ReactNode }) => 
     setExercises([]);
     setStartTime(null);
     setElapsed(0);
+    setSourceRoutineId(null);
   };
 
   const addExercise = (e: Exercise) =>
@@ -111,6 +115,7 @@ export const WorkoutProvider = ({ children }: { children: React.ReactNode }) => 
         name,
         exercises,
         elapsed,
+        sourceRoutineId,
         startWorkout,
         endWorkout,
         minimize: () => setMinimized(true),
