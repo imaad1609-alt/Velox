@@ -4,7 +4,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
-  FlatList,
   Modal,
   ScrollView,
   StyleSheet,
@@ -13,15 +12,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  Equipment,
-  EQUIPMENT_TYPES,
-  Exercise,
-  EXERCISES,
-  MUSCLE_COLORS,
-  MUSCLE_GROUPS,
-  MuscleGroup,
-} from "../constants/exercises";
+import { ExercisePicker } from "../components/ExercisePicker";
+import { RoutineEditor } from "../components/RoutineEditor";
+import { Exercise, MUSCLE_COLORS } from "../constants/exercises";
+import { createRoutine, deleteRoutine, Routine, subscribeRoutines } from "../utils/routines";
 import { saveWorkout } from "../utils/workouts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -52,193 +46,34 @@ const RestTimer = ({ onDone }: { onDone: () => void }) => {
   );
 };
 
-// ─── Muscle Chip ─────────────────────────────────────────────────────────────
-const MuscleChip = ({ muscle }: { muscle: string }) => (
-  <View style={[styles.chip, { backgroundColor: (MUSCLE_COLORS[muscle] || "#6C63FF") + "33", borderColor: MUSCLE_COLORS[muscle] || "#6C63FF" }]}>
-    <Text style={[styles.chipText, { color: MUSCLE_COLORS[muscle] || "#6C63FF" }]}>{muscle}</Text>
-  </View>
-);
-
-// ─── Exercise Picker ──────────────────────────────────────────────────────────
-const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) => void; onClose: () => void }) => {
-  const [search, setSearch] = useState("");
-  const [muscle, setMuscle] = useState<MuscleGroup | "All">("All");
-  const [equipment, setEquipment] = useState<Equipment | "All">("All");
-  const [showMuscleFilter, setShowMuscleFilter] = useState(false);
-  const [showEquipFilter, setShowEquipFilter] = useState(false);
-  const [detail, setDetail] = useState<Exercise | null>(null);
-
-  const filtered = EXERCISES.filter((e) => {
-    const matchSearch = e.name.toLowerCase().includes(search.toLowerCase());
-    const matchMuscle = muscle === "All" || e.primaryMuscle === muscle;
-    const matchEquip = equipment === "All" || e.equipment === equipment;
-    return matchSearch && matchMuscle && matchEquip;
-  });
-
+// ─── Routine Card ─────────────────────────────────────────────────────────────
+const RoutineCard = ({
+  routine,
+  onStart,
+  onMenu,
+}: {
+  routine: Routine;
+  onStart: () => void;
+  onMenu: () => void;
+}) => {
+  const preview =
+    routine.exercises.length > 0
+      ? routine.exercises.map((e) => e.name).join(", ")
+      : "No exercises yet";
   return (
-    <View style={styles.pickerContainer}>
-      {/* Header */}
-      <View style={styles.pickerHeader}>
-        <TouchableOpacity onPress={onClose}>
-          <Text style={styles.pickerCancel}>Cancel</Text>
+    <View style={styles.routineCard}>
+      <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+        <Text style={styles.routineName}>{routine.name}</Text>
+        <TouchableOpacity style={styles.routineMenuBtn} onPress={onMenu} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Ionicons name="ellipsis-horizontal" size={20} color="#888" />
         </TouchableOpacity>
-        <Text style={styles.pickerTitle}>Exercise Library</Text>
-        <Text style={styles.pickerCount}>{filtered.length}</Text>
       </View>
-
-      {/* Search */}
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search exercises..."
-        placeholderTextColor="#555"
-        value={search}
-        onChangeText={setSearch}
-      />
-
-      {/* Filter row */}
-      <View style={styles.filterRow}>
-        <TouchableOpacity
-          style={[styles.filterBtn, muscle !== "All" && styles.filterBtnActive]}
-          onPress={() => setShowMuscleFilter(true)}
-        >
-          <Text style={[styles.filterBtnText, muscle !== "All" && styles.filterBtnTextActive]}>
-            {muscle === "All" ? "Muscle" : muscle} ▾
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterBtn, equipment !== "All" && styles.filterBtnActive]}
-          onPress={() => setShowEquipFilter(true)}
-        >
-          <Text style={[styles.filterBtnText, equipment !== "All" && styles.filterBtnTextActive]}>
-            {equipment === "All" ? "Equipment" : equipment} ▾
-          </Text>
-        </TouchableOpacity>
-        {(muscle !== "All" || equipment !== "All") && (
-          <TouchableOpacity onPress={() => { setMuscle("All"); setEquipment("All"); }}>
-            <Text style={styles.clearFilter}>Clear</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Exercise list */}
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.exerciseRow} onPress={() => setDetail(item)}>
-            <View style={[styles.colorBar, { backgroundColor: MUSCLE_COLORS[item.primaryMuscle] || "#6C63FF" }]} />
-            <View style={{ flex: 1, paddingLeft: 12 }}>
-              <Text style={styles.exerciseName}>{item.name}</Text>
-              <View style={styles.chipRow}>
-                <MuscleChip muscle={item.primaryMuscle} />
-                {item.secondaryMuscles.slice(0, 2).map((m) => <MuscleChip key={m} muscle={m} />)}
-                <View style={styles.equipChip}>
-                  <Text style={styles.equipChipText}>{item.equipment}</Text>
-                </View>
-              </View>
-            </View>
-            <View style={[styles.diffDot, { backgroundColor: item.difficulty === "Beginner" ? "#00C9A7" : item.difficulty === "Intermediate" ? "#FF9F43" : "#FF6B6B" }]} />
-          </TouchableOpacity>
-        )}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
-
-      {/* Muscle filter sheet */}
-      <Modal visible={showMuscleFilter} transparent animationType="slide">
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowMuscleFilter(false)}>
-          <View style={styles.sheet}>
-            <Text style={styles.sheetTitle}>Filter by Muscle</Text>
-            <TouchableOpacity style={styles.sheetOption} onPress={() => { setMuscle("All"); setShowMuscleFilter(false); }}>
-              <Text style={[styles.sheetOptionText, muscle === "All" && styles.sheetOptionActive]}>All Muscles</Text>
-            </TouchableOpacity>
-            {MUSCLE_GROUPS.map((m) => (
-              <TouchableOpacity key={m} style={styles.sheetOption} onPress={() => { setMuscle(m); setShowMuscleFilter(false); }}>
-                <View style={[styles.filterDot, { backgroundColor: MUSCLE_COLORS[m] }]} />
-                <Text style={[styles.sheetOptionText, muscle === m && styles.sheetOptionActive]}>{m}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Equipment filter sheet */}
-      <Modal visible={showEquipFilter} transparent animationType="slide">
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowEquipFilter(false)}>
-          <View style={styles.sheet}>
-            <Text style={styles.sheetTitle}>Filter by Equipment</Text>
-            <TouchableOpacity style={styles.sheetOption} onPress={() => { setEquipment("All"); setShowEquipFilter(false); }}>
-              <Text style={[styles.sheetOptionText, equipment === "All" && styles.sheetOptionActive]}>All Equipment</Text>
-            </TouchableOpacity>
-            {EQUIPMENT_TYPES.map((eq) => (
-              <TouchableOpacity key={eq} style={styles.sheetOption} onPress={() => { setEquipment(eq); setShowEquipFilter(false); }}>
-                <Text style={[styles.sheetOptionText, equipment === eq && styles.sheetOptionActive]}>{eq}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Exercise detail */}
-      <Modal visible={!!detail} transparent animationType="slide">
-        <View style={styles.detailOverlay}>
-          <View style={styles.detailSheet}>
-            {detail && (
-              <>
-                <View style={[styles.detailBar, { backgroundColor: MUSCLE_COLORS[detail.primaryMuscle] }]} />
-                <ScrollView showsVerticalScrollIndicator={false}>
-                  <Text style={styles.detailName}>{detail.name}</Text>
-
-                  <Text style={styles.detailLabel}>PRIMARY MUSCLE</Text>
-                  <MuscleChip muscle={detail.primaryMuscle} />
-
-                  {detail.secondaryMuscles.length > 0 && (
-                    <>
-                      <Text style={[styles.detailLabel, { marginTop: 12 }]}>SECONDARY</Text>
-                      <View style={styles.chipRow}>{detail.secondaryMuscles.map((m) => <MuscleChip key={m} muscle={m} />)}</View>
-                    </>
-                  )}
-
-                  {detail.tertiaryMuscles.length > 0 && (
-                    <>
-                      <Text style={[styles.detailLabel, { marginTop: 12 }]}>ALSO WORKS</Text>
-                      <View style={styles.chipRow}>{detail.tertiaryMuscles.map((m) => <MuscleChip key={m} muscle={m} />)}</View>
-                    </>
-                  )}
-
-                  <View style={styles.metaRow}>
-                    <View>
-                      <Text style={styles.detailLabel}>EQUIPMENT</Text>
-                      <Text style={styles.metaValue}>{detail.equipment}</Text>
-                    </View>
-                    <View>
-                      <Text style={styles.detailLabel}>DIFFICULTY</Text>
-                      <Text style={[styles.metaValue, { color: detail.difficulty === "Beginner" ? "#00C9A7" : detail.difficulty === "Intermediate" ? "#FF9F43" : "#FF6B6B" }]}>{detail.difficulty}</Text>
-                    </View>
-                  </View>
-
-                  <Text style={[styles.detailLabel, { marginTop: 16 }]}>HOW TO PERFORM</Text>
-                  {detail.instructions.map((step, i) => (
-                    <View key={i} style={styles.stepRow}>
-                      <View style={styles.stepNum}><Text style={styles.stepNumText}>{i + 1}</Text></View>
-                      <Text style={styles.stepText}>{step}</Text>
-                    </View>
-                  ))}
-                  <View style={{ height: 20 }} />
-                </ScrollView>
-
-                <TouchableOpacity style={styles.addConfirmBtn} onPress={() => { onSelect(detail); setDetail(null); }}>
-                  <LinearGradient colors={["#6C63FF", "#4ECDC4"]} style={styles.addConfirmGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                    <Text style={styles.addConfirmText}>+ Add to Workout</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.backBtn} onPress={() => setDetail(null)}>
-                  <Text style={styles.backBtnText}>Back to Library</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
+      <Text style={styles.routinePreview} numberOfLines={2}>{preview}</Text>
+      <TouchableOpacity style={styles.startRoutineBtn} onPress={onStart}>
+        <LinearGradient colors={["#6C63FF", "#4ECDC4"]} style={styles.startRoutineGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+          <Text style={styles.startRoutineText}>Start Routine</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -247,7 +82,16 @@ const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) => void
 export default function Workout() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
+
+  // Routines
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [routinesError, setRoutinesError] = useState("");
+  const [editing, setEditing] = useState<{ routine: Routine; isNew: boolean } | null>(null);
+  const [menuRoutine, setMenuRoutine] = useState<Routine | null>(null);
+
+  // Active workout (logger)
   const [isWorkingOut, setIsWorkingOut] = useState(false);
+  const [workoutName, setWorkoutName] = useState("My Workout");
   const [exercises, setExercises] = useState<LoggedExercise[]>([]);
   const [showPicker, setShowPicker] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
@@ -256,13 +100,21 @@ export default function Workout() {
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
-  const workoutName = "My Workout";
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
     ]).start();
+  }, []);
+
+  // Live routines list — updates whenever a routine is created, edited, or deleted.
+  useEffect(() => {
+    const unsub = subscribeRoutines(
+      (r) => { setRoutines(r); setRoutinesError(""); },
+      (e) => setRoutinesError(e.message)
+    );
+    return unsub;
   }, []);
 
   // Tick the workout duration every second while a workout is active
@@ -280,7 +132,52 @@ export default function Workout() {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const startWorkout = () => {
+  // ─── Routine actions ──────────────────────────────────────────────────────
+  const newRoutine = async () => {
+    try {
+      const id = await createRoutine();
+      setEditing({ routine: { id, name: "New Routine", exercises: [], createdAt: Date.now(), updatedAt: Date.now() }, isNew: true });
+    } catch (e: any) {
+      setRoutinesError(e.message);
+    }
+  };
+
+  const editRoutine = (routine: Routine) => {
+    setMenuRoutine(null);
+    setEditing({ routine, isNew: false });
+  };
+
+  const removeRoutine = async (routine: Routine) => {
+    setMenuRoutine(null);
+    try { await deleteRoutine(routine.id); } catch (e: any) { setRoutinesError(e.message); }
+  };
+
+  const startRoutine = (routine: Routine) => {
+    // Pre-load the logger with the routine's exercises and planned sets.
+    const loaded: LoggedExercise[] = routine.exercises.map((re) => ({
+      exercise: {
+        id: re.exerciseId,
+        name: re.name,
+        primaryMuscle: re.primaryMuscle as Exercise["primaryMuscle"],
+        secondaryMuscles: [],
+        tertiaryMuscles: [],
+        equipment: re.equipment as Exercise["equipment"],
+        difficulty: "Beginner",
+        instructions: [],
+      },
+      sets: re.sets.map((s) => ({ weight: s.weight, reps: s.reps, done: false })),
+    }));
+    setWorkoutName(routine.name);
+    setExercises(loaded);
+    setStartTime(Date.now());
+    setElapsed(0);
+    setIsWorkingOut(true);
+  };
+
+  // ─── Logger actions ───────────────────────────────────────────────────────
+  const startEmptyWorkout = () => {
+    setWorkoutName("My Workout");
+    setExercises([]);
     setStartTime(Date.now());
     setElapsed(0);
     setIsWorkingOut(true);
@@ -348,36 +245,107 @@ export default function Workout() {
     }
   };
 
-  if (showPicker) return <ExercisePicker onSelect={addExercise} onClose={() => setShowPicker(false)} />;
-
-  if (!isWorkingOut) {
+  // ─── Render: routine editor ─────────────────────────────────────────────────
+  if (editing) {
     return (
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.headerTitle}>Workout</Text>
-              <Text style={styles.headerSub}>Ready to train?</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.startBtn} onPress={startWorkout}>
-            <LinearGradient colors={["#6C63FF", "#4ECDC4"]} style={styles.startBtnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Text style={styles.startBtnText}>+ Start Empty Workout</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          <View style={{ height: 32 }} />
-        </Animated.View>
-      </ScrollView>
+      <RoutineEditor
+        routineId={editing.routine.id}
+        initialName={editing.routine.name}
+        initialExercises={editing.routine.exercises}
+        isNew={editing.isNew}
+        onClose={() => setEditing(null)}
+      />
     );
   }
 
+  // ─── Render: exercise picker (inside a live workout) ─────────────────────────
+  if (showPicker) return <ExercisePicker onSelect={addExercise} onClose={() => setShowPicker(false)} />;
+
+  // ─── Render: workout home ─────────────────────────────────────────────────────
+  if (!isWorkingOut) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "#0D0D0D" }}>
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+            <View style={styles.header}>
+              <View>
+                <Text style={styles.headerTitle}>Workout</Text>
+                <Text style={styles.headerSub}>Ready to train?</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.startBtn} onPress={startEmptyWorkout}>
+              <LinearGradient colors={["#6C63FF", "#4ECDC4"]} style={styles.startBtnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                <Text style={styles.startBtnText}>+ Start Empty Workout</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* Routines */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Routines</Text>
+            </View>
+            <TouchableOpacity style={styles.newRoutineBtn} onPress={newRoutine}>
+              <Ionicons name="clipboard-outline" size={18} color="#6C63FF" />
+              <Text style={styles.newRoutineText}>New Routine</Text>
+            </TouchableOpacity>
+
+            {routinesError ? <Text style={styles.errorText}>{routinesError}</Text> : null}
+
+            <Text style={styles.myRoutinesLabel}>My Routines ({routines.length})</Text>
+            {routines.length === 0 && !routinesError ? (
+              <Text style={styles.emptyRoutines}>No routines yet. Tap “New Routine” to build one — it saves automatically.</Text>
+            ) : (
+              routines.map((r) => (
+                <RoutineCard
+                  key={r.id}
+                  routine={r}
+                  onStart={() => startRoutine(r)}
+                  onMenu={() => setMenuRoutine(r)}
+                />
+              ))
+            )}
+
+            <View style={{ height: 40 }} />
+          </Animated.View>
+        </ScrollView>
+
+        {/* Routine "..." menu */}
+        <Modal visible={!!menuRoutine} transparent animationType="fade" onRequestClose={() => setMenuRoutine(null)}>
+          <TouchableOpacity style={styles.menuOverlay} activeOpacity={1} onPress={() => setMenuRoutine(null)}>
+            <View style={styles.menuSheet}>
+              <Text style={styles.menuTitle} numberOfLines={1}>{menuRoutine?.name}</Text>
+              <TouchableOpacity style={styles.menuOption} onPress={() => menuRoutine && editRoutine(menuRoutine)}>
+                <Ionicons name="create-outline" size={20} color="#6C63FF" />
+                <Text style={styles.menuOptionText}>Edit routine</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuOption} onPress={() => menuRoutine && removeRoutine(menuRoutine)}>
+                <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
+                <Text style={[styles.menuOptionText, { color: "#FF6B6B" }]}>Delete routine</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuCancel} onPress={() => setMenuRoutine(null)}>
+                <Text style={styles.menuCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      </View>
+    );
+  }
+
+  // ─── Render: active workout logger ────────────────────────────────────────────
   return (
     <View style={{ flex: 1, backgroundColor: "#0D0D0D" }}>
       {showTimer && <RestTimer onDone={() => setShowTimer(false)} />}
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <View>
-            <Text style={styles.headerTitle}>{workoutName}</Text>
+          <View style={{ flex: 1 }}>
+            <TextInput
+              style={styles.workoutNameInput}
+              value={workoutName}
+              onChangeText={setWorkoutName}
+              placeholder="Workout name"
+              placeholderTextColor="#555"
+            />
             <Text style={styles.durationText}>{formatDuration(elapsed)}</Text>
           </View>
           <TouchableOpacity onPress={finishWorkout}>
@@ -464,8 +432,39 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 24, paddingTop: 20, paddingBottom: 16 },
   headerTitle: { fontSize: 26, fontWeight: "bold", color: "#FFF" },
   headerSub: { fontSize: 14, color: "#888", marginTop: 2 },
+  workoutNameInput: { fontSize: 24, fontWeight: "bold", color: "#FFF", padding: 0 },
   durationText: { fontSize: 15, color: "#6C63FF", fontWeight: "600", marginTop: 2, fontVariant: ["tabular-nums"] },
-  finishBtn: { color: "#00C9A7", fontSize: 16, fontWeight: "600" },
+  finishBtn: { color: "#00C9A7", fontSize: 16, fontWeight: "600", marginLeft: 12 },
+
+  // Workout home
+  startBtn: { marginHorizontal: 16, marginBottom: 8, borderRadius: 16, overflow: "hidden" },
+  startBtnGradient: { padding: 18, alignItems: "center" },
+  startBtnText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 24, marginTop: 20, marginBottom: 12 },
+  sectionTitle: { color: "#FFF", fontSize: 20, fontWeight: "bold" },
+  newRoutineBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 16, padding: 16, borderRadius: 14, borderWidth: 1, borderColor: "#2A2A4A", backgroundColor: "#1A1A2E" },
+  newRoutineText: { color: "#6C63FF", fontSize: 15, fontWeight: "600" },
+  myRoutinesLabel: { color: "#888", fontSize: 14, fontWeight: "600", paddingHorizontal: 24, marginTop: 24, marginBottom: 12 },
+  emptyRoutines: { color: "#666", fontSize: 14, lineHeight: 20, paddingHorizontal: 24 },
+  errorText: { color: "#FF6B6B", fontSize: 13, paddingHorizontal: 24, marginTop: 12 },
+  routineCard: { marginHorizontal: 16, marginBottom: 12, borderRadius: 16, padding: 18, borderWidth: 1, borderColor: "#2A2A4A", backgroundColor: "#1A1A2E" },
+  routineName: { flex: 1, color: "#FFF", fontSize: 17, fontWeight: "bold" },
+  routineMenuBtn: { paddingLeft: 12 },
+  routinePreview: { color: "#888", fontSize: 13, lineHeight: 19, marginTop: 6, marginBottom: 14 },
+  startRoutineBtn: { borderRadius: 12, overflow: "hidden" },
+  startRoutineGradient: { padding: 14, alignItems: "center" },
+  startRoutineText: { color: "#FFF", fontSize: 15, fontWeight: "bold" },
+
+  // Routine menu
+  menuOverlay: { flex: 1, backgroundColor: "#000000AA", justifyContent: "flex-end" },
+  menuSheet: { backgroundColor: "#1A1A2E", borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40 },
+  menuTitle: { color: "#FFF", fontSize: 16, fontWeight: "bold", marginBottom: 12 },
+  menuOption: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderColor: "#2A2A4A" },
+  menuOptionText: { color: "#FFF", fontSize: 16 },
+  menuCancel: { marginTop: 16, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: "#2A2A4A", alignItems: "center" },
+  menuCancelText: { color: "#888", fontSize: 15, fontWeight: "600" },
+
+  // Finish confirm
   confirmOverlay: { flex: 1, backgroundColor: "#000000CC", justifyContent: "center", alignItems: "center", padding: 32 },
   confirmBox: { backgroundColor: "#1A1A2E", borderRadius: 20, padding: 24, width: "100%", maxWidth: 360, borderWidth: 1, borderColor: "#2A2A4A" },
   confirmTitle: { color: "#FFF", fontSize: 20, fontWeight: "bold", marginBottom: 8 },
@@ -476,9 +475,8 @@ const styles = StyleSheet.create({
   confirmCancelText: { color: "#888", fontSize: 15, fontWeight: "600" },
   confirmFinishBtn: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: "#00C9A7", alignItems: "center" },
   confirmFinishText: { color: "#0D0D0D", fontSize: 15, fontWeight: "bold" },
-  startBtn: { marginHorizontal: 16, marginBottom: 24, borderRadius: 16, overflow: "hidden" },
-  startBtnGradient: { padding: 18, alignItems: "center" },
-  startBtnText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },
+
+  // Active workout / exercise cards
   exerciseCard: { marginHorizontal: 16, marginBottom: 16, borderRadius: 16, padding: 18, borderWidth: 1, borderColor: "#2A2A4A" },
   exDot: { width: 10, height: 10, borderRadius: 5, marginRight: 10 },
   exerciseTitle: { fontSize: 17, fontWeight: "bold", color: "#FFF", flex: 1 },
@@ -498,54 +496,11 @@ const styles = StyleSheet.create({
   addSetText: { color: "#6C63FF", fontSize: 14, fontWeight: "600" },
   addExBtn: { marginHorizontal: 16, padding: 18, borderRadius: 16, borderWidth: 1, borderColor: "#2A2A4A", alignItems: "center" },
   addExText: { color: "#6C63FF", fontSize: 16, fontWeight: "600" },
+
+  // Rest timer
   timerBox: { backgroundColor: "#1A1A2E", margin: 16, borderRadius: 16, padding: 20, alignItems: "center", borderWidth: 1, borderColor: "#6C63FF" },
   timerLabel: { color: "#888", fontSize: 11, letterSpacing: 1.5 },
   timerCount: { color: "#6C63FF", fontSize: 52, fontWeight: "bold" },
   timerSkip: { marginTop: 8, paddingHorizontal: 24, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: "#6C63FF" },
   timerSkipText: { color: "#6C63FF", fontSize: 14, fontWeight: "600" },
-  pickerContainer: { flex: 1, backgroundColor: "#0D0D0D" },
-  pickerHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 20, paddingTop: 60, borderBottomWidth: 1, borderColor: "#1A1A2E" },
-  pickerCancel: { color: "#6C63FF", fontSize: 16 },
-  pickerTitle: { color: "#FFF", fontSize: 17, fontWeight: "bold" },
-  pickerCount: { color: "#888", fontSize: 14 },
-  searchInput: { margin: 16, backgroundColor: "#1A1A2E", color: "#FFF", borderRadius: 12, padding: 14, fontSize: 15, borderWidth: 1, borderColor: "#2A2A4A" },
-  filterRow: { flexDirection: "row", paddingHorizontal: 16, gap: 8, marginBottom: 8, alignItems: "center" },
-  filterBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: "#2A2A4A", backgroundColor: "#1A1A2E" },
-  filterBtnActive: { borderColor: "#6C63FF", backgroundColor: "#6C63FF22" },
-  filterBtnText: { color: "#888", fontSize: 13 },
-  filterBtnTextActive: { color: "#6C63FF" },
-  clearFilter: { color: "#FF6B6B", fontSize: 13, fontWeight: "600" },
-  exerciseRow: { flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingLeft: 0 },
-  colorBar: { width: 4, alignSelf: "stretch", borderRadius: 2, marginLeft: 16 },
-  exerciseName: { color: "#FFF", fontSize: 15, fontWeight: "600", marginBottom: 6 },
-  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
-  chip: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, borderWidth: 1 },
-  chipText: { fontSize: 11, fontWeight: "600" },
-  equipChip: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, backgroundColor: "#2A2A4A" },
-  equipChipText: { fontSize: 11, color: "#888" },
-  diffDot: { width: 8, height: 8, borderRadius: 4, marginRight: 16 },
-  separator: { height: 1, backgroundColor: "#1A1A2E", marginLeft: 20 },
-  overlay: { flex: 1, backgroundColor: "#000000AA", justifyContent: "flex-end" },
-  sheet: { backgroundColor: "#1A1A2E", borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 48, maxHeight: "80%" },
-  sheetTitle: { color: "#FFF", fontSize: 17, fontWeight: "bold", marginBottom: 16 },
-  sheetOption: { flexDirection: "row", alignItems: "center", paddingVertical: 13, borderBottomWidth: 1, borderColor: "#2A2A4A" },
-  sheetOptionText: { color: "#888", fontSize: 15 },
-  sheetOptionActive: { color: "#6C63FF", fontWeight: "bold" },
-  filterDot: { width: 10, height: 10, borderRadius: 5, marginRight: 10 },
-  detailOverlay: { flex: 1, backgroundColor: "#000000BB", justifyContent: "flex-end" },
-  detailSheet: { backgroundColor: "#0D0D0D", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 16, maxHeight: "92%" },
-  detailBar: { height: 4, borderRadius: 2, marginBottom: 16 },
-  detailName: { color: "#FFF", fontSize: 22, fontWeight: "bold", marginBottom: 16 },
-  detailLabel: { color: "#888", fontSize: 11, letterSpacing: 1.5, fontWeight: "700", marginBottom: 8 },
-  metaRow: { flexDirection: "row", gap: 32, marginTop: 16, padding: 16, backgroundColor: "#1A1A2E", borderRadius: 12 },
-  metaValue: { color: "#FFF", fontSize: 15, fontWeight: "bold", marginTop: 4 },
-  stepRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: 12 },
-  stepNum: { width: 24, height: 24, borderRadius: 12, backgroundColor: "#6C63FF", alignItems: "center", justifyContent: "center", marginRight: 10, marginTop: 1 },
-  stepNumText: { color: "#FFF", fontSize: 12, fontWeight: "bold" },
-  stepText: { color: "#CCC", fontSize: 14, flex: 1, lineHeight: 20 },
-  addConfirmBtn: { marginTop: 16, borderRadius: 14, overflow: "hidden" },
-  addConfirmGradient: { padding: 16, alignItems: "center" },
-  addConfirmText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },
-  backBtn: { padding: 14, alignItems: "center" },
-  backBtnText: { color: "#888", fontSize: 14 },
 });
