@@ -19,6 +19,7 @@ import {
   MUSCLE_GROUPS,
   MuscleGroup,
 } from "../constants/exercises";
+import { MuscleMap } from "./MuscleMap";
 
 // ─── Muscle Chip ─────────────────────────────────────────────────────────────
 export const MuscleChip = ({ muscle }: { muscle: string }) => (
@@ -158,6 +159,15 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
                 <ScrollView showsVerticalScrollIndicator={false}>
                   <Text style={styles.detailName}>{detail.name}</Text>
 
+                  <Text style={styles.detailLabel}>TARGET MUSCLES</Text>
+                  <View style={styles.muscleMapBox}>
+                    <MuscleMap
+                      primary={detail.primaryMuscle}
+                      secondary={detail.secondaryMuscles}
+                      tertiary={detail.tertiaryMuscles}
+                    />
+                  </View>
+
                   <Text style={styles.detailLabel}>PRIMARY MUSCLE</Text>
                   <MuscleChip muscle={detail.primaryMuscle} />
 
@@ -248,6 +258,7 @@ const styles = StyleSheet.create({
   detailBar: { height: 4, borderRadius: 2, marginBottom: 16 },
   detailName: { color: "#FFF", fontSize: 22, fontWeight: "bold", marginBottom: 16 },
   detailLabel: { color: "#888", fontSize: 11, letterSpacing: 1.5, fontWeight: "700", marginBottom: 8 },
+  muscleMapBox: { backgroundColor: "#1A1A2E", borderRadius: 12, paddingVertical: 16, marginBottom: 16 },
   metaRow: { flexDirection: "row", gap: 32, marginTop: 16, padding: 16, backgroundColor: "#1A1A2E", borderRadius: 12 },
   metaValue: { color: "#FFF", fontSize: 15, fontWeight: "bold", marginTop: 4 },
   stepRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: 12 },
