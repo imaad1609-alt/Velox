@@ -15,12 +15,9 @@ import {
 import { ExercisePicker } from "../components/ExercisePicker";
 import { RoutineEditor } from "../components/RoutineEditor";
 import { Exercise, MUSCLE_COLORS } from "../constants/exercises";
+import { LoggedExercise, useWorkout } from "../contexts/WorkoutContext";
 import { createRoutine, deleteRoutine, Routine, subscribeRoutines } from "../utils/routines";
 import { saveWorkout } from "../utils/workouts";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-type LoggedSet = { weight: string; reps: string; done: boolean };
-type LoggedExercise = { exercise: Exercise; sets: LoggedSet[] };
 
 // ─── Rest Timer ───────────────────────────────────────────────────────────────
 const RestTimer = ({ onDone }: { onDone: () => void }) => {
@@ -83,20 +80,18 @@ export default function Workout() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
 
-  // Routines
+  // Active workout lives in shared context so it survives tab switches.
+  const workout = useWorkout();
+
+  // Routines (home)
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [routinesError, setRoutinesError] = useState("");
   const [editing, setEditing] = useState<{ routine: Routine; isNew: boolean } | null>(null);
   const [menuRoutine, setMenuRoutine] = useState<Routine | null>(null);
 
-  // Active workout (logger)
-  const [isWorkingOut, setIsWorkingOut] = useState(false);
-  const [workoutName, setWorkoutName] = useState("My Workout");
-  const [exercises, setExercises] = useState<LoggedExercise[]>([]);
+  // Logger-local UI state
   const [showPicker, setShowPicker] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [elapsed, setElapsed] = useState(0);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -116,15 +111,6 @@ export default function Workout() {
     );
     return unsub;
   }, []);
-
-  // Tick the workout duration every second while a workout is active
-  useEffect(() => {
-    if (!isWorkingOut || startTime === null) return;
-    const t = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - startTime) / 1000));
-    }, 1000);
-    return () => clearInterval(t);
-  }, [isWorkingOut, startTime]);
 
   const formatDuration = (totalSeconds: number) => {
     const m = Math.floor(totalSeconds / 60);
@@ -153,6 +139,8 @@ export default function Workout() {
   };
 
   const startRoutine = (routine: Routine) => {
+    // Don't clobber an in-progress workout — bring it back instead.
+    if (workout.active) { workout.expand(); return; }
     // Pre-load the logger with the routine's exercises and planned sets.
     const loaded: LoggedExercise[] = routine.exercises.map((re) => ({
       exercise: {
@@ -167,49 +155,19 @@ export default function Workout() {
       },
       sets: re.sets.map((s) => ({ weight: s.weight, reps: s.reps, done: false })),
     }));
-    setWorkoutName(routine.name);
-    setExercises(loaded);
-    setStartTime(Date.now());
-    setElapsed(0);
-    setIsWorkingOut(true);
+    workout.startWorkout(routine.name, loaded);
   };
 
-  // ─── Logger actions ───────────────────────────────────────────────────────
-  const startEmptyWorkout = () => {
-    setWorkoutName("My Workout");
-    setExercises([]);
-    setStartTime(Date.now());
-    setElapsed(0);
-    setIsWorkingOut(true);
-  };
+  const startEmptyWorkout = () => workout.startWorkout("My Workout", []);
 
-  const addExercise = (e: Exercise) => {
-    setExercises((prev) => [...prev, { exercise: e, sets: [{ weight: "", reps: "", done: false }] }]);
+  // ─── Logger UI wrappers ───────────────────────────────────────────────────
+  const handleAddExercise = (e: Exercise) => {
+    workout.addExercise(e);
     setShowPicker(false);
   };
 
-  const deleteExercise = (ei: number) => {
-    setExercises((prev) => prev.filter((_, index) => index !== ei));
-  };
-
-  const addSet = (i: number) => {
-    setExercises((prev) => { const u = [...prev]; u[i].sets.push({ weight: "", reps: "", done: false }); return u; });
-  };
-
-  const deleteSet = (ei: number, si: number) => {
-    setExercises((prev) => {
-      const u = [...prev];
-      u[ei].sets = u[ei].sets.filter((_, index) => index !== si);
-      return u;
-    });
-  };
-
-  const updateSet = (ei: number, si: number, field: "weight" | "reps", val: string) => {
-    setExercises((prev) => { const u = [...prev]; u[ei].sets[si][field] = val; return u; });
-  };
-
-  const toggleSet = (ei: number, si: number) => {
-    setExercises((prev) => { const u = [...prev]; u[ei].sets[si].done = !u[ei].sets[si].done; return u; });
+  const handleToggleSet = (ei: number, si: number) => {
+    workout.toggleSet(ei, si);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setShowTimer(true);
   };
@@ -224,20 +182,17 @@ export default function Workout() {
     setSaveError("");
     try {
       await saveWorkout({
-        name: workoutName,
-        durationSeconds: elapsed,
+        name: workout.name,
+        durationSeconds: workout.elapsed,
         date: Date.now(),
-        exercises: exercises.map((item) => ({
+        exercises: workout.exercises.map((item) => ({
           name: item.exercise.name,
           primaryMuscle: item.exercise.primaryMuscle,
           sets: item.sets.map((s) => ({ weight: s.weight, reps: s.reps })),
         })),
       });
       setShowFinishConfirm(false);
-      setIsWorkingOut(false);
-      setExercises([]);
-      setStartTime(null);
-      setElapsed(0);
+      workout.endWorkout();
     } catch (error: any) {
       setSaveError(error.message);
     } finally {
@@ -259,10 +214,10 @@ export default function Workout() {
   }
 
   // ─── Render: exercise picker (inside a live workout) ─────────────────────────
-  if (showPicker) return <ExercisePicker onSelect={addExercise} onClose={() => setShowPicker(false)} />;
+  if (showPicker) return <ExercisePicker onSelect={handleAddExercise} onClose={() => setShowPicker(false)} />;
 
   // ─── Render: workout home ─────────────────────────────────────────────────────
-  if (!isWorkingOut) {
+  if (!workout.active || workout.minimized) {
     return (
       <View style={{ flex: 1, backgroundColor: "#0D0D0D" }}>
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -274,9 +229,9 @@ export default function Workout() {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.startBtn} onPress={startEmptyWorkout}>
-              <LinearGradient colors={["#6C63FF", "#4ECDC4"]} style={styles.startBtnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                <Text style={styles.startBtnText}>+ Start Empty Workout</Text>
+            <TouchableOpacity style={styles.startBtn} onPress={startEmptyWorkout} disabled={workout.active}>
+              <LinearGradient colors={workout.active ? ["#2A2A4A", "#2A2A4A"] : ["#6C63FF", "#4ECDC4"]} style={styles.startBtnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                <Text style={styles.startBtnText}>{workout.active ? "Workout in progress" : "+ Start Empty Workout"}</Text>
               </LinearGradient>
             </TouchableOpacity>
 
@@ -305,7 +260,7 @@ export default function Workout() {
               ))
             )}
 
-            <View style={{ height: 40 }} />
+            <View style={{ height: 120 }} />
           </Animated.View>
         </ScrollView>
 
@@ -338,26 +293,29 @@ export default function Workout() {
       {showTimer && <RestTimer onDone={() => setShowTimer(false)} />}
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <View style={{ flex: 1 }}>
+          <TouchableOpacity style={styles.minimizeBtn} onPress={workout.minimize} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Ionicons name="chevron-down" size={24} color="#888" />
+          </TouchableOpacity>
+          <View style={{ flex: 1, marginHorizontal: 12 }}>
             <TextInput
               style={styles.workoutNameInput}
-              value={workoutName}
-              onChangeText={setWorkoutName}
+              value={workout.name}
+              onChangeText={workout.setName}
               placeholder="Workout name"
               placeholderTextColor="#555"
             />
-            <Text style={styles.durationText}>{formatDuration(elapsed)}</Text>
+            <Text style={styles.durationText}>{formatDuration(workout.elapsed)}</Text>
           </View>
           <TouchableOpacity onPress={finishWorkout}>
             <Text style={styles.finishBtn}>Finish</Text>
           </TouchableOpacity>
         </View>
-        {exercises.map((item, ei) => (
+        {workout.exercises.map((item, ei) => (
           <LinearGradient key={ei} colors={["#1A1A2E", "#16213E"]} style={styles.exerciseCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
               <View style={[styles.exDot, { backgroundColor: MUSCLE_COLORS[item.exercise.primaryMuscle] || "#6C63FF" }]} />
               <Text style={styles.exerciseTitle}>{item.exercise.name}</Text>
-              <TouchableOpacity style={styles.deleteExBtn} onPress={() => deleteExercise(ei)}>
+              <TouchableOpacity style={styles.deleteExBtn} onPress={() => workout.deleteExercise(ei)}>
                 <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
               </TouchableOpacity>
             </View>
@@ -372,23 +330,23 @@ export default function Workout() {
             {item.sets.map((set, si) => (
               <View key={si} style={styles.setRow}>
                 <Text style={[styles.setNum, { flex: 0.5 }]}>{si + 1}</Text>
-                <TextInput style={[styles.setInput, { flex: 1 }, set.done && styles.setDone]} placeholder="0" placeholderTextColor="#555" keyboardType="numeric" value={set.weight} onChangeText={(v) => updateSet(ei, si, "weight", v)} editable={!set.done} />
-                <TextInput style={[styles.setInput, { flex: 1 }, set.done && styles.setDone]} placeholder="0" placeholderTextColor="#555" keyboardType="numeric" value={set.reps} onChangeText={(v) => updateSet(ei, si, "reps", v)} editable={!set.done} />
-                <TouchableOpacity style={[styles.doneBtn, { flex: 0.5 }, set.done && styles.doneBtnActive]} onPress={() => toggleSet(ei, si)}>
+                <TextInput style={[styles.setInput, { flex: 1 }, set.done && styles.setDone]} placeholder="0" placeholderTextColor="#555" keyboardType="numeric" value={set.weight} onChangeText={(v) => workout.updateSet(ei, si, "weight", v)} editable={!set.done} />
+                <TextInput style={[styles.setInput, { flex: 1 }, set.done && styles.setDone]} placeholder="0" placeholderTextColor="#555" keyboardType="numeric" value={set.reps} onChangeText={(v) => workout.updateSet(ei, si, "reps", v)} editable={!set.done} />
+                <TouchableOpacity style={[styles.doneBtn, { flex: 0.5 }, set.done && styles.doneBtnActive]} onPress={() => handleToggleSet(ei, si)}>
                   <Text style={styles.doneBtnText}>{set.done ? "✓" : "○"}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.deleteSetBtn}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    deleteSet(ei, si);
+                    workout.deleteSet(ei, si);
                   }}
                 >
                   <Ionicons name="close" size={18} color="#FF6B6B" />
                 </TouchableOpacity>
               </View>
             ))}
-            <TouchableOpacity style={styles.addSetBtn} onPress={() => addSet(ei)}>
+            <TouchableOpacity style={styles.addSetBtn} onPress={() => workout.addSet(ei)}>
               <Text style={styles.addSetText}>+ Add Set</Text>
             </TouchableOpacity>
           </LinearGradient>
@@ -405,7 +363,7 @@ export default function Workout() {
           <View style={styles.confirmBox}>
             <Text style={styles.confirmTitle}>Finish Workout?</Text>
             <Text style={styles.confirmMsg}>
-              {exercises.length} {exercises.length === 1 ? "exercise" : "exercises"} logged in {formatDuration(elapsed)}.
+              {workout.exercises.length} {workout.exercises.length === 1 ? "exercise" : "exercises"} logged in {formatDuration(workout.elapsed)}.
             </Text>
             {saveError ? <Text style={styles.confirmError}>{saveError}</Text> : null}
             <View style={styles.confirmBtnRow}>
@@ -432,6 +390,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 24, paddingTop: 20, paddingBottom: 16 },
   headerTitle: { fontSize: 26, fontWeight: "bold", color: "#FFF" },
   headerSub: { fontSize: 14, color: "#888", marginTop: 2 },
+  minimizeBtn: { padding: 2 },
   workoutNameInput: { fontSize: 24, fontWeight: "bold", color: "#FFF", padding: 0 },
   durationText: { fontSize: 15, color: "#6C63FF", fontWeight: "600", marginTop: 2, fontVariant: ["tabular-nums"] },
   finishBtn: { color: "#00C9A7", fontSize: 16, fontWeight: "600", marginLeft: 12 },
