@@ -243,13 +243,6 @@ const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) => void
 };
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
-const TEMPLATES = [
-  { name: "Push Day", exercises: ["Barbell Bench Press", "Dumbbell Shoulder Press", "Tricep Pushdown"] },
-  { name: "Pull Day", exercises: ["Pull Up", "Barbell Row", "Barbell Curl"] },
-  { name: "Leg Day", exercises: ["Barbell Back Squat", "Romanian Deadlift", "Leg Press"] },
-  { name: "Full Body", exercises: ["Deadlift", "Barbell Bench Press", "Barbell Back Squat"] },
-];
-
 export default function Workout() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
@@ -257,7 +250,7 @@ export default function Workout() {
   const [exercises, setExercises] = useState<LoggedExercise[]>([]);
   const [showPicker, setShowPicker] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
-  const [workoutName, setWorkoutName] = useState("My Workout");
+  const workoutName = "My Workout";
 
   useEffect(() => {
     Animated.parallel([
@@ -265,13 +258,6 @@ export default function Workout() {
       Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
     ]).start();
   }, []);
-
-  const startFromTemplate = (t: typeof TEMPLATES[0]) => {
-    setWorkoutName(t.name);
-    const found = t.exercises.map((name) => EXERCISES.find((e) => e.name === name)).filter(Boolean) as Exercise[];
-    setExercises(found.map((e) => ({ exercise: e, sets: [{ weight: "", reps: "", done: false }] })));
-    setIsWorkingOut(true);
-  };
 
   const addExercise = (e: Exercise) => {
     setExercises((prev) => [...prev, { exercise: e, sets: [{ weight: "", reps: "", done: false }] }]);
@@ -316,15 +302,6 @@ export default function Workout() {
               <Text style={styles.startBtnText}>+ Start Empty Workout</Text>
             </LinearGradient>
           </TouchableOpacity>
-          <Text style={styles.sectionLabel}>QUICK TEMPLATES</Text>
-          {TEMPLATES.map((t) => (
-            <TouchableOpacity key={t.name} onPress={() => startFromTemplate(t)} activeOpacity={0.85}>
-              <LinearGradient colors={["#1A1A2E", "#16213E"]} style={styles.templateCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-                <Text style={styles.templateName}>{t.name}</Text>
-                <Text style={styles.templateSub}>{t.exercises.join(" · ")}</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          ))}
           <View style={{ height: 32 }} />
         </Animated.View>
       </ScrollView>
@@ -387,10 +364,6 @@ const styles = StyleSheet.create({
   startBtn: { marginHorizontal: 16, marginBottom: 24, borderRadius: 16, overflow: "hidden" },
   startBtnGradient: { padding: 18, alignItems: "center" },
   startBtnText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },
-  sectionLabel: { fontSize: 12, fontWeight: "700", color: "#888", letterSpacing: 1.5, marginHorizontal: 24, marginBottom: 12 },
-  templateCard: { marginHorizontal: 16, marginBottom: 12, borderRadius: 16, padding: 18, borderWidth: 1, borderColor: "#2A2A4A" },
-  templateName: { fontSize: 17, fontWeight: "bold", color: "#FFF", marginBottom: 6 },
-  templateSub: { fontSize: 13, color: "#888" },
   exerciseCard: { marginHorizontal: 16, marginBottom: 16, borderRadius: 16, padding: 18, borderWidth: 1, borderColor: "#2A2A4A" },
   exDot: { width: 10, height: 10, borderRadius: 5, marginRight: 10 },
   exerciseTitle: { fontSize: 17, fontWeight: "bold", color: "#FFF" },

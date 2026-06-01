@@ -2,7 +2,7 @@ export type MuscleGroup =
   | "Chest" | "Back" | "Shoulders" | "Biceps"
   | "Triceps" | "Quadriceps" | "Hamstrings"
   | "Glutes" | "Calves" | "Core" | "Full Body"
-  | "Forearms" | "Adductors" | "Abductors" | "Neck" | "Cardio";
+  | "Forearms" | "Adductors" | "Abductors" | "Neck" | "Cardio" | "Legs";
 
 export type Equipment =
   | "Barbell" | "Dumbbell" | "Cable" | "Machine"
