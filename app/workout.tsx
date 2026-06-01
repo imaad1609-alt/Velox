@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
@@ -250,6 +251,8 @@ export default function Workout() {
   const [exercises, setExercises] = useState<LoggedExercise[]>([]);
   const [showPicker, setShowPicker] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [elapsed, setElapsed] = useState(0);
   const workoutName = "My Workout";
 
   useEffect(() => {
@@ -259,13 +262,46 @@ export default function Workout() {
     ]).start();
   }, []);
 
+  // Tick the workout duration every second while a workout is active
+  useEffect(() => {
+    if (!isWorkingOut || startTime === null) return;
+    const t = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [isWorkingOut, startTime]);
+
+  const formatDuration = (totalSeconds: number) => {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const startWorkout = () => {
+    setStartTime(Date.now());
+    setElapsed(0);
+    setIsWorkingOut(true);
+  };
+
   const addExercise = (e: Exercise) => {
     setExercises((prev) => [...prev, { exercise: e, sets: [{ weight: "", reps: "", done: false }] }]);
     setShowPicker(false);
   };
 
+  const deleteExercise = (ei: number) => {
+    setExercises((prev) => prev.filter((_, index) => index !== ei));
+  };
+
   const addSet = (i: number) => {
     setExercises((prev) => { const u = [...prev]; u[i].sets.push({ weight: "", reps: "", done: false }); return u; });
+  };
+
+  const deleteSet = (ei: number, si: number) => {
+    setExercises((prev) => {
+      const u = [...prev];
+      u[ei].sets = u[ei].sets.filter((_, index) => index !== si);
+      return u;
+    });
   };
 
   const updateSet = (ei: number, si: number, field: "weight" | "reps", val: string) => {
@@ -279,9 +315,9 @@ export default function Workout() {
   };
 
   const finishWorkout = () => {
-    Alert.alert("Finish Workout?", `${exercises.length} exercises logged.`, [
+    Alert.alert("Finish Workout?", `${exercises.length} exercises logged in ${formatDuration(elapsed)}.`, [
       { text: "Cancel", style: "cancel" },
-      { text: "Finish", onPress: () => { setIsWorkingOut(false); setExercises([]); } },
+      { text: "Finish", onPress: () => { setIsWorkingOut(false); setExercises([]); setStartTime(null); setElapsed(0); } },
     ]);
   };
 
@@ -297,7 +333,7 @@ export default function Workout() {
               <Text style={styles.headerSub}>Ready to train?</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.startBtn} onPress={() => setIsWorkingOut(true)}>
+          <TouchableOpacity style={styles.startBtn} onPress={startWorkout}>
             <LinearGradient colors={["#6C63FF", "#4ECDC4"]} style={styles.startBtnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
               <Text style={styles.startBtnText}>+ Start Empty Workout</Text>
             </LinearGradient>
@@ -313,7 +349,10 @@ export default function Workout() {
       {showTimer && <RestTimer onDone={() => setShowTimer(false)} />}
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>{workoutName}</Text>
+          <View>
+            <Text style={styles.headerTitle}>{workoutName}</Text>
+            <Text style={styles.durationText}>{formatDuration(elapsed)}</Text>
+          </View>
           <TouchableOpacity onPress={finishWorkout}>
             <Text style={styles.finishBtn}>Finish</Text>
           </TouchableOpacity>
@@ -323,6 +362,9 @@ export default function Workout() {
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
               <View style={[styles.exDot, { backgroundColor: MUSCLE_COLORS[item.exercise.primaryMuscle] || "#6C63FF" }]} />
               <Text style={styles.exerciseTitle}>{item.exercise.name}</Text>
+              <TouchableOpacity style={styles.deleteExBtn} onPress={() => deleteExercise(ei)}>
+                <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
+              </TouchableOpacity>
             </View>
             <Text style={styles.exerciseSub}>{item.exercise.primaryMuscle} · {item.exercise.equipment}</Text>
             <View style={styles.setHeader}>
@@ -330,6 +372,7 @@ export default function Workout() {
               <Text style={[styles.setCol, { flex: 1 }]}>lbs</Text>
               <Text style={[styles.setCol, { flex: 1 }]}>Reps</Text>
               <Text style={[styles.setCol, { flex: 0.5 }]}>✓</Text>
+              <Text style={[styles.setCol, { flex: 0.5 }]}></Text>
             </View>
             {item.sets.map((set, si) => (
               <View key={si} style={styles.setRow}>
@@ -338,6 +381,15 @@ export default function Workout() {
                 <TextInput style={[styles.setInput, { flex: 1 }, set.done && styles.setDone]} placeholder="0" placeholderTextColor="#555" keyboardType="numeric" value={set.reps} onChangeText={(v) => updateSet(ei, si, "reps", v)} editable={!set.done} />
                 <TouchableOpacity style={[styles.doneBtn, { flex: 0.5 }, set.done && styles.doneBtnActive]} onPress={() => toggleSet(ei, si)}>
                   <Text style={styles.doneBtnText}>{set.done ? "✓" : "○"}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteSetBtn}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    deleteSet(ei, si);
+                  }}
+                >
+                  <Ionicons name="close" size={18} color="#FF6B6B" />
                 </TouchableOpacity>
               </View>
             ))}
@@ -360,13 +412,15 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 24, paddingTop: 20, paddingBottom: 16 },
   headerTitle: { fontSize: 26, fontWeight: "bold", color: "#FFF" },
   headerSub: { fontSize: 14, color: "#888", marginTop: 2 },
+  durationText: { fontSize: 15, color: "#6C63FF", fontWeight: "600", marginTop: 2, fontVariant: ["tabular-nums"] },
   finishBtn: { color: "#00C9A7", fontSize: 16, fontWeight: "600" },
   startBtn: { marginHorizontal: 16, marginBottom: 24, borderRadius: 16, overflow: "hidden" },
   startBtnGradient: { padding: 18, alignItems: "center" },
   startBtnText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },
   exerciseCard: { marginHorizontal: 16, marginBottom: 16, borderRadius: 16, padding: 18, borderWidth: 1, borderColor: "#2A2A4A" },
   exDot: { width: 10, height: 10, borderRadius: 5, marginRight: 10 },
-  exerciseTitle: { fontSize: 17, fontWeight: "bold", color: "#FFF" },
+  exerciseTitle: { fontSize: 17, fontWeight: "bold", color: "#FFF", flex: 1 },
+  deleteExBtn: { padding: 4 },
   exerciseSub: { fontSize: 12, color: "#888", marginBottom: 14, marginLeft: 20 },
   setHeader: { flexDirection: "row", marginBottom: 8 },
   setCol: { fontSize: 11, color: "#666", fontWeight: "700", textTransform: "uppercase", textAlign: "center" },
@@ -377,6 +431,7 @@ const styles = StyleSheet.create({
   doneBtn: { height: 38, borderRadius: 8, backgroundColor: "#0D0D0D", alignItems: "center", justifyContent: "center" },
   doneBtnActive: { backgroundColor: "#00C9A7" },
   doneBtnText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },
+  deleteSetBtn: { flex: 0.5, height: 38, alignItems: "center", justifyContent: "center" },
   addSetBtn: { marginTop: 8, alignItems: "center", padding: 8 },
   addSetText: { color: "#6C63FF", fontSize: 14, fontWeight: "600" },
   addExBtn: { marginHorizontal: 16, padding: 18, borderRadius: 16, borderWidth: 1, borderColor: "#2A2A4A", alignItems: "center" },
