@@ -1,10 +1,7 @@
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import {
   FlatList,
   Modal,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -20,14 +17,8 @@ import {
   MuscleGroup,
 } from "../constants/exercises";
 import { useExercises } from "../contexts/ExercisesProvider";
-import { MuscleMap } from "./MuscleMap";
-
-// ─── Muscle Chip ─────────────────────────────────────────────────────────────
-export const MuscleChip = ({ muscle }: { muscle: string }) => (
-  <View style={[styles.chip, { backgroundColor: (MUSCLE_COLORS[muscle] || "#6C63FF") + "33", borderColor: MUSCLE_COLORS[muscle] || "#6C63FF" }]}>
-    <Text style={[styles.chipText, { color: MUSCLE_COLORS[muscle] || "#6C63FF" }]}>{muscle}</Text>
-  </View>
-);
+import { ExerciseDetail } from "./ExerciseDetail";
+import { MuscleChip } from "./MuscleChip";
 
 // ─── Exercise Picker ──────────────────────────────────────────────────────────
 // A full-screen exercise library with search + filters. Calls onSelect with the
@@ -156,73 +147,11 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
         <View style={styles.detailOverlay}>
           <View style={styles.detailSheet}>
             {detail && (
-              <>
-                <View style={[styles.detailBar, { backgroundColor: MUSCLE_COLORS[detail.primaryMuscle] }]} />
-                <ScrollView showsVerticalScrollIndicator={false}>
-                  <Text style={styles.detailName}>{detail.name}</Text>
-
-                  {detail.imageUrl ? (
-                    <View style={styles.mediaBox}>
-                      <Image source={{ uri: detail.imageUrl }} style={styles.media} contentFit="contain" />
-                    </View>
-                  ) : null}
-
-                  <Text style={styles.detailLabel}>TARGET MUSCLES</Text>
-                  <View style={styles.muscleMapBox}>
-                    <MuscleMap
-                      primary={detail.primaryMuscle}
-                      secondary={detail.secondaryMuscles}
-                      tertiary={detail.tertiaryMuscles}
-                    />
-                  </View>
-
-                  <Text style={styles.detailLabel}>PRIMARY MUSCLE</Text>
-                  <MuscleChip muscle={detail.primaryMuscle} />
-
-                  {detail.secondaryMuscles.length > 0 && (
-                    <>
-                      <Text style={[styles.detailLabel, { marginTop: 12 }]}>SECONDARY</Text>
-                      <View style={styles.chipRow}>{detail.secondaryMuscles.map((m) => <MuscleChip key={m} muscle={m} />)}</View>
-                    </>
-                  )}
-
-                  {detail.tertiaryMuscles.length > 0 && (
-                    <>
-                      <Text style={[styles.detailLabel, { marginTop: 12 }]}>ALSO WORKS</Text>
-                      <View style={styles.chipRow}>{detail.tertiaryMuscles.map((m) => <MuscleChip key={m} muscle={m} />)}</View>
-                    </>
-                  )}
-
-                  <View style={styles.metaRow}>
-                    <View>
-                      <Text style={styles.detailLabel}>EQUIPMENT</Text>
-                      <Text style={styles.metaValue}>{detail.equipment}</Text>
-                    </View>
-                    <View>
-                      <Text style={styles.detailLabel}>DIFFICULTY</Text>
-                      <Text style={[styles.metaValue, { color: detail.difficulty === "Beginner" ? "#00C9A7" : detail.difficulty === "Intermediate" ? "#FF9F43" : "#FF6B6B" }]}>{detail.difficulty}</Text>
-                    </View>
-                  </View>
-
-                  <Text style={[styles.detailLabel, { marginTop: 16 }]}>HOW TO PERFORM</Text>
-                  {detail.instructions.map((step, i) => (
-                    <View key={i} style={styles.stepRow}>
-                      <View style={styles.stepNum}><Text style={styles.stepNumText}>{i + 1}</Text></View>
-                      <Text style={styles.stepText}>{step}</Text>
-                    </View>
-                  ))}
-                  <View style={{ height: 20 }} />
-                </ScrollView>
-
-                <TouchableOpacity style={styles.addConfirmBtn} onPress={() => { onSelect(detail); setDetail(null); }}>
-                  <LinearGradient colors={["#6C63FF", "#4ECDC4"]} style={styles.addConfirmGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                    <Text style={styles.addConfirmText}>+ Add to Workout</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.backBtn} onPress={() => setDetail(null)}>
-                  <Text style={styles.backBtnText}>Back to Library</Text>
-                </TouchableOpacity>
-              </>
+              <ExerciseDetail
+                exercise={detail}
+                onAdd={() => { onSelect(detail); setDetail(null); }}
+                onClose={() => setDetail(null)}
+              />
             )}
           </View>
         </View>
@@ -232,8 +161,6 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
 };
 
 const styles = StyleSheet.create({
-  chip: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, borderWidth: 1 },
-  chipText: { fontSize: 11, fontWeight: "600" },
   pickerContainer: { flex: 1, backgroundColor: "#0D0D0D" },
   pickerHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 20, paddingTop: 60, borderBottomWidth: 1, borderColor: "#1A1A2E" },
   pickerCancel: { color: "#6C63FF", fontSize: 16 },
@@ -263,21 +190,4 @@ const styles = StyleSheet.create({
   filterDot: { width: 10, height: 10, borderRadius: 5, marginRight: 10 },
   detailOverlay: { flex: 1, backgroundColor: "#000000BB", justifyContent: "flex-end" },
   detailSheet: { backgroundColor: "#0D0D0D", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 16, maxHeight: "92%" },
-  detailBar: { height: 4, borderRadius: 2, marginBottom: 16 },
-  detailName: { color: "#FFF", fontSize: 22, fontWeight: "bold", marginBottom: 16 },
-  detailLabel: { color: "#888", fontSize: 11, letterSpacing: 1.5, fontWeight: "700", marginBottom: 8 },
-  muscleMapBox: { backgroundColor: "#1A1A2E", borderRadius: 12, paddingVertical: 16, marginBottom: 16 },
-  mediaBox: { backgroundColor: "#FFF", borderRadius: 12, marginBottom: 16, overflow: "hidden" },
-  media: { width: "100%", height: 220 },
-  metaRow: { flexDirection: "row", gap: 32, marginTop: 16, padding: 16, backgroundColor: "#1A1A2E", borderRadius: 12 },
-  metaValue: { color: "#FFF", fontSize: 15, fontWeight: "bold", marginTop: 4 },
-  stepRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: 12 },
-  stepNum: { width: 24, height: 24, borderRadius: 12, backgroundColor: "#6C63FF", alignItems: "center", justifyContent: "center", marginRight: 10, marginTop: 1 },
-  stepNumText: { color: "#FFF", fontSize: 12, fontWeight: "bold" },
-  stepText: { color: "#CCC", fontSize: 14, flex: 1, lineHeight: 20 },
-  addConfirmBtn: { marginTop: 16, borderRadius: 14, overflow: "hidden" },
-  addConfirmGradient: { padding: 16, alignItems: "center" },
-  addConfirmText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },
-  backBtn: { padding: 14, alignItems: "center" },
-  backBtnText: { color: "#888", fontSize: 14 },
 });
