@@ -86,6 +86,7 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
 
       {/* Exercise list */}
       <FlatList
+        style={{ flex: 1 }}
         data={filtered}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
@@ -189,5 +190,5 @@ const styles = StyleSheet.create({
   sheetOptionActive: { color: "#6C63FF", fontWeight: "bold" },
   filterDot: { width: 10, height: 10, borderRadius: 5, marginRight: 10 },
   detailOverlay: { flex: 1, backgroundColor: "#000000BB", justifyContent: "flex-end" },
-  detailSheet: { backgroundColor: "#0D0D0D", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 16, maxHeight: "92%" },
+  detailSheet: { backgroundColor: "#0D0D0D", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 16, height: "92%" },
 });
