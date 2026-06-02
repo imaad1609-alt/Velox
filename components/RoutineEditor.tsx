@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -27,45 +28,60 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
   const [name, setName] = useState(initialName);
   const [exercises, setExercises] = useState<RoutineExercise[]>(initialExercises);
   const [showPicker, setShowPicker] = useState(false);
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const mounted = useRef(false);
+  // Baseline to diff against — captured once on mount.
+  const initial = useRef({ name: initialName, exercises: initialExercises });
 
-  // ─── Auto-save ──────────────────────────────────────────────────────────────
-  // Debounce 600ms after the last edit, then patch Firestore. The initial mount
-  // carries the values we loaded, so we skip saving on that first run.
-  useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true;
-      return;
-    }
-    setSaveState("saving");
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async () => {
-      try {
-        await updateRoutine(routineId, { name: name.trim() || "Untitled Routine", exercises });
-        setSaveState("saved");
-      } catch {
-        setSaveState("idle");
-      }
-    }, 600);
-    return () => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-    };
-  }, [name, exercises, routineId]);
+  const hasChanges =
+    JSON.stringify({ name, exercises }) !== JSON.stringify(initial.current);
 
-  // ─── Close ────────────────────────────────────────────────────────────────
-  const handleClose = async () => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    // Drop an empty just-created routine instead of leaving clutter behind.
+  // Human-readable summary of what changed, for the save prompt.
+  const buildSummary = (): string => {
+    const initSets = initial.current.exercises.reduce((a, e) => a + e.sets.length, 0);
+    const curSets = exercises.reduce((a, e) => a + e.sets.length, 0);
+    const exDelta = exercises.length - initial.current.exercises.length;
+    const setDelta = curSets - initSets;
+    const parts: string[] = [];
+    if (exDelta > 0) parts.push(`added ${exDelta} exercise${exDelta > 1 ? "s" : ""}`);
+    if (exDelta < 0) parts.push(`removed ${-exDelta} exercise${-exDelta > 1 ? "s" : ""}`);
+    if (setDelta > 0) parts.push(`added ${setDelta} set${setDelta > 1 ? "s" : ""}`);
+    if (setDelta < 0) parts.push(`removed ${-setDelta} set${-setDelta > 1 ? "s" : ""}`);
+    if (name.trim() !== initial.current.name.trim()) parts.push("renamed it");
+    if (parts.length === 0) parts.push("edited the sets");
+    return parts.join(", ");
+  };
+
+  // ─── Close / save ───────────────────────────────────────────────────────────
+  const handleDone = () => {
+    // A brand-new routine with nothing in it: just drop the empty shell.
     if (isNew && exercises.length === 0) {
-      try { await deleteRoutine(routineId); } catch {}
+      deleteRoutine(routineId).catch(() => {});
       onClose();
       return;
     }
-    // Flush any pending edit so nothing is lost on the way out.
-    try { await updateRoutine(routineId, { name: name.trim() || "Untitled Routine", exercises }); } catch {}
+    // Nothing changed → leave without prompting.
+    if (!hasChanges) {
+      onClose();
+      return;
+    }
+    setShowConfirm(true);
+  };
+
+  const saveAndClose = async () => {
+    try {
+      await updateRoutine(routineId, { name: name.trim() || "Untitled Routine", exercises });
+    } catch {}
+    setShowConfirm(false);
+    onClose();
+  };
+
+  const discardAndClose = async () => {
+    setShowConfirm(false);
+    // A just-created routine that's being discarded shouldn't linger.
+    if (isNew) {
+      try { await deleteRoutine(routineId); } catch {}
+    }
     onClose();
   };
 
@@ -118,12 +134,10 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleClose}>
+        <Text style={styles.headerTitle}>{isNew ? "New Routine" : "Edit Routine"}</Text>
+        <TouchableOpacity onPress={handleDone}>
           <Text style={styles.headerAction}>Done</Text>
         </TouchableOpacity>
-        <Text style={styles.saveStatus}>
-          {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : ""}
-        </Text>
       </View>
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -137,7 +151,7 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
         />
 
         {exercises.length === 0 && (
-          <Text style={styles.emptyHint}>Add exercises to build your routine. Your changes save automatically.</Text>
+          <Text style={styles.emptyHint}>Add exercises to build your routine. You’ll be asked to save when you tap Done.</Text>
         )}
 
         {exercises.map((item, ei) => (
@@ -177,6 +191,27 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
         </TouchableOpacity>
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Save changes confirmation */}
+      <Modal visible={showConfirm} transparent animationType="fade" onRequestClose={() => setShowConfirm(false)}>
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmBox}>
+            <Text style={styles.confirmTitle}>Save changes?</Text>
+            <Text style={styles.confirmMsg}>You {buildSummary()}. Save this routine?</Text>
+            <View style={styles.confirmBtnRow}>
+              <TouchableOpacity style={styles.confirmDiscard} onPress={discardAndClose}>
+                <Text style={styles.confirmDiscardText}>Discard</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.confirmSave} onPress={saveAndClose}>
+                <Text style={styles.confirmSaveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.confirmCancel} onPress={() => setShowConfirm(false)}>
+              <Text style={styles.confirmCancelText}>Keep editing</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -184,8 +219,8 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0D0D0D" },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingTop: 60, paddingBottom: 12, borderBottomWidth: 1, borderColor: "#1A1A2E" },
+  headerTitle: { color: "#FFF", fontSize: 17, fontWeight: "bold" },
   headerAction: { color: "#00C9A7", fontSize: 16, fontWeight: "600" },
-  saveStatus: { color: "#888", fontSize: 13, fontVariant: ["tabular-nums"] },
   nameInput: { color: "#FFF", fontSize: 22, fontWeight: "bold", paddingHorizontal: 20, paddingVertical: 16 },
   emptyHint: { color: "#666", fontSize: 14, lineHeight: 20, paddingHorizontal: 20, marginBottom: 8 },
   exerciseCard: { marginHorizontal: 16, marginBottom: 16, borderRadius: 16, padding: 18, borderWidth: 1, borderColor: "#2A2A4A" },
@@ -203,4 +238,16 @@ const styles = StyleSheet.create({
   addSetText: { color: "#6C63FF", fontSize: 14, fontWeight: "600" },
   addExBtn: { marginHorizontal: 16, padding: 18, borderRadius: 16, borderWidth: 1, borderColor: "#2A2A4A", alignItems: "center" },
   addExText: { color: "#6C63FF", fontSize: 16, fontWeight: "600" },
+
+  confirmOverlay: { flex: 1, backgroundColor: "#000000CC", justifyContent: "center", alignItems: "center", padding: 32 },
+  confirmBox: { backgroundColor: "#1A1A2E", borderRadius: 20, padding: 24, width: "100%", maxWidth: 360, borderWidth: 1, borderColor: "#2A2A4A" },
+  confirmTitle: { color: "#FFF", fontSize: 20, fontWeight: "bold", marginBottom: 8 },
+  confirmMsg: { color: "#AAA", fontSize: 15, lineHeight: 21, marginBottom: 8 },
+  confirmBtnRow: { flexDirection: "row", gap: 12, marginTop: 12 },
+  confirmDiscard: { flex: 1, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: "#2A2A4A", alignItems: "center" },
+  confirmDiscardText: { color: "#FF6B6B", fontSize: 15, fontWeight: "600" },
+  confirmSave: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: "#00C9A7", alignItems: "center" },
+  confirmSaveText: { color: "#0D0D0D", fontSize: 15, fontWeight: "bold" },
+  confirmCancel: { marginTop: 12, padding: 12, alignItems: "center" },
+  confirmCancelText: { color: "#888", fontSize: 14, fontWeight: "600" },
 });

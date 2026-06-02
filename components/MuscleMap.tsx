@@ -73,11 +73,11 @@ export const MuscleMap = ({ primary, secondary = [], tertiary = [] }: Props) => 
     <View>
       <View style={styles.bodies}>
         <View style={styles.bodyCol}>
-          <Body data={data} side="front" gender="male" scale={0.65} colors={INTENSITY_COLORS} border="none" />
+          <Body data={data} side="front" gender="male" scale={0.45} colors={INTENSITY_COLORS} border="none" />
           <Text style={styles.bodyLabel}>Front</Text>
         </View>
         <View style={styles.bodyCol}>
-          <Body data={data} side="back" gender="male" scale={0.65} colors={INTENSITY_COLORS} border="none" />
+          <Body data={data} side="back" gender="male" scale={0.45} colors={INTENSITY_COLORS} border="none" />
           <Text style={styles.bodyLabel}>Back</Text>
         </View>
       </View>
