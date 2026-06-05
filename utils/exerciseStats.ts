@@ -9,16 +9,18 @@ export type ExerciseSession = {
   date: number;
   sets: ExerciseSet[];
   heaviestWeight: number;
-  best1RM: number;     // Epley estimate, rounded
-  volume: number;      // sum of weight × reps
-  mostReps: number;    // most reps in a single set
-  totalReps: number;   // reps across the session
+  best1RM: number;       // Epley estimate, rounded
+  volume: number;        // sum of weight × reps across the session
+  bestSetVolume: number; // best single set's weight × reps (Hevy-style)
+  mostReps: number;      // most reps in a single set
+  totalReps: number;     // reps across the session
 };
 
 export type ExercisePRs = {
   heaviestWeight: number;
   best1RM: number;
-  bestVolume: number;
+  bestVolume: number;    // best session volume
+  bestSetVolume: number; // best single-set volume
   mostReps: number;
 };
 
@@ -34,7 +36,7 @@ const num = (s: string) => {
 
 export const EMPTY_STATS: ExerciseStats = {
   sessions: [],
-  prs: { heaviestWeight: 0, best1RM: 0, bestVolume: 0, mostReps: 0 },
+  prs: { heaviestWeight: 0, best1RM: 0, bestVolume: 0, bestSetVolume: 0, mostReps: 0 },
 };
 
 export const computeExerciseStats = (
@@ -51,6 +53,7 @@ export const computeExerciseStats = (
     let heaviestWeight = 0;
     let best1RM = 0;
     let volume = 0;
+    let bestSetVolume = 0;
     let mostReps = 0;
     let totalReps = 0;
 
@@ -63,6 +66,7 @@ export const computeExerciseStats = (
       mostReps = Math.max(mostReps, reps);
       totalReps += reps;
       volume += weight * reps;
+      bestSetVolume = Math.max(bestSetVolume, weight * reps);
       if (weight > 0 && reps > 0) best1RM = Math.max(best1RM, weight * (1 + reps / 30));
     }
 
@@ -73,6 +77,7 @@ export const computeExerciseStats = (
       heaviestWeight,
       best1RM: Math.round(best1RM),
       volume: Math.round(volume),
+      bestSetVolume: Math.round(bestSetVolume),
       mostReps,
       totalReps,
     });
@@ -84,6 +89,7 @@ export const computeExerciseStats = (
     heaviestWeight: Math.max(0, ...sessions.map((s) => s.heaviestWeight)),
     best1RM: Math.max(0, ...sessions.map((s) => s.best1RM)),
     bestVolume: Math.max(0, ...sessions.map((s) => s.volume)),
+    bestSetVolume: Math.max(0, ...sessions.map((s) => s.bestSetVolume)),
     mostReps: Math.max(0, ...sessions.map((s) => s.mostReps)),
   };
 

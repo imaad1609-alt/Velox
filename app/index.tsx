@@ -131,7 +131,7 @@ export default function Dashboard() {
         {/* Workout Card */}
         <TouchableOpacity onPress={() => router.push("/workout")} activeOpacity={0.85}>
           <LinearGradient colors={["#1A1A2E", "#16213E"]} style={[styles.card, { marginBottom: 32 }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-            <Text style={styles.cardTitle}>Today's Workout</Text>
+            <Text style={styles.cardTitle}>Today&apos;s Workout</Text>
             <View style={styles.workoutRow}>
               <View style={styles.workoutIcon}>
                 <Text style={styles.workoutIconText}>💪</Text>

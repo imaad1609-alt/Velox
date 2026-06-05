@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -32,12 +32,16 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
   const [detail, setDetail] = useState<Exercise | null>(null);
   const catalog = useExercises();
 
-  const filtered = catalog.filter((e) => {
-    const matchSearch = e.name.toLowerCase().includes(search.toLowerCase());
-    const matchMuscle = muscle === "All" || e.primaryMuscle === muscle;
-    const matchEquip = equipment === "All" || e.equipment === equipment;
-    return matchSearch && matchMuscle && matchEquip;
-  });
+  const filtered = useMemo(
+    () =>
+      catalog.filter((e) => {
+        const matchSearch = e.name.toLowerCase().includes(search.toLowerCase());
+        const matchMuscle = muscle === "All" || e.primaryMuscle === muscle;
+        const matchEquip = equipment === "All" || e.equipment === equipment;
+        return matchSearch && matchMuscle && matchEquip;
+      }),
+    [catalog, search, muscle, equipment]
+  );
 
   return (
     <View style={styles.pickerContainer}>
@@ -106,6 +110,11 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
           </TouchableOpacity>
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListEmptyComponent={
+          <View style={styles.emptyBox}>
+            <Text style={styles.emptyText}>No exercises match your search or filters.</Text>
+          </View>
+        }
       />
 
       {/* Muscle filter sheet */}
@@ -182,6 +191,8 @@ const styles = StyleSheet.create({
   equipChipText: { fontSize: 11, color: "#888" },
   diffDot: { width: 8, height: 8, borderRadius: 4, marginRight: 16 },
   separator: { height: 1, backgroundColor: "#1A1A2E", marginLeft: 20 },
+  emptyBox: { padding: 32, alignItems: "center" },
+  emptyText: { color: "#666", fontSize: 14, textAlign: "center", lineHeight: 20 },
   overlay: { flex: 1, backgroundColor: "#000000AA", justifyContent: "flex-end" },
   sheet: { backgroundColor: "#1A1A2E", borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 48, maxHeight: "80%" },
   sheetTitle: { color: "#FFF", fontSize: 17, fontWeight: "bold", marginBottom: 16 },

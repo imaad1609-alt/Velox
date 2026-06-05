@@ -29,6 +29,8 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
   const [exercises, setExercises] = useState<RoutineExercise[]>(initialExercises);
   const [showPicker, setShowPicker] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   // Baseline to diff against — captured once on mount.
   const initial = useRef({ name: initialName, exercises: initialExercises });
@@ -69,16 +71,24 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
   };
 
   const saveAndClose = async () => {
+    setSaving(true);
+    setSaveError("");
     try {
       await updateRoutine(routineId, { name: name.trim() || "Untitled Routine", exercises });
-    } catch {}
-    setShowConfirm(false);
-    onClose();
+      setShowConfirm(false);
+      onClose();
+    } catch (e: any) {
+      // Don't close as if it saved — keep the prompt open and tell the user.
+      setSaveError(e?.message || "Couldn't save the routine. Try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const discardAndClose = async () => {
     setShowConfirm(false);
-    // A just-created routine that's being discarded shouldn't linger.
+    // A just-created routine that's being discarded shouldn't linger. This is
+    // best-effort cleanup of an abandoned empty shell, so failure is non-fatal.
     if (isNew) {
       try { await deleteRoutine(routineId); } catch {}
     }
@@ -198,12 +208,13 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
           <View style={styles.confirmBox}>
             <Text style={styles.confirmTitle}>Save changes?</Text>
             <Text style={styles.confirmMsg}>You {buildSummary()}. Save this routine?</Text>
+            {saveError ? <Text style={styles.confirmError}>{saveError}</Text> : null}
             <View style={styles.confirmBtnRow}>
-              <TouchableOpacity style={styles.confirmDiscard} onPress={discardAndClose}>
+              <TouchableOpacity style={styles.confirmDiscard} onPress={discardAndClose} disabled={saving}>
                 <Text style={styles.confirmDiscardText}>Discard</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmSave} onPress={saveAndClose}>
-                <Text style={styles.confirmSaveText}>Save</Text>
+              <TouchableOpacity style={styles.confirmSave} onPress={saveAndClose} disabled={saving}>
+                <Text style={styles.confirmSaveText}>{saving ? "Saving…" : "Save"}</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity style={styles.confirmCancel} onPress={() => setShowConfirm(false)}>
@@ -243,6 +254,7 @@ const styles = StyleSheet.create({
   confirmBox: { backgroundColor: "#1A1A2E", borderRadius: 20, padding: 24, width: "100%", maxWidth: 360, borderWidth: 1, borderColor: "#2A2A4A" },
   confirmTitle: { color: "#FFF", fontSize: 20, fontWeight: "bold", marginBottom: 8 },
   confirmMsg: { color: "#AAA", fontSize: 15, lineHeight: 21, marginBottom: 8 },
+  confirmError: { color: "#FF6B6B", fontSize: 13, marginBottom: 8 },
   confirmBtnRow: { flexDirection: "row", gap: 12, marginTop: 12 },
   confirmDiscard: { flex: 1, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: "#2A2A4A", alignItems: "center" },
   confirmDiscardText: { color: "#FF6B6B", fontSize: 15, fontWeight: "600" },
