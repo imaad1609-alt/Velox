@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
 import {
@@ -8,6 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { COLORS, FONTS, RADIUS, SPACING } from "../constants/theme";
+import { PressableScale } from "../components/PressableScale";
 import { auth } from "../firebaseConfig";
 
 const validatePassword = (password: string): string | null => {
@@ -18,11 +21,18 @@ const validatePassword = (password: string): string | null => {
   return null;
 };
 
-export default function Login() {
+export default function Login({
+  initialSignUp = false,
+  onBack,
+}: {
+  initialSignUp?: boolean;
+  onBack?: () => void;
+} = {}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(initialSignUp);
   const [passwordError, setPasswordError] = useState("");
+  const [focused, setFocused] = useState<"email" | "password" | null>(null);
 
   const handleAuth = async () => {
     if (isSignUp) {
@@ -46,50 +56,69 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Velox</Text>
-      <Text style={styles.subtitle}>{isSignUp ? "Create an account" : "Welcome back"}</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#888"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#888"
-        value={password}
-        onChangeText={(text) => {
-          setPassword(text);
-          if (isSignUp) setPasswordError(validatePassword(text) || "");
-        }}
-        secureTextEntry
-      />
-
-      {isSignUp && (
-        <View style={styles.requirementsBox}>
-          <Text style={[styles.req, password.length >= 8 && styles.reqMet]}>✓ At least 8 characters</Text>
-          <Text style={[styles.req, /[A-Z]/.test(password) && styles.reqMet]}>✓ One capital letter</Text>
-          <Text style={[styles.req, /[0-9]/.test(password) && styles.reqMet]}>✓ One number</Text>
-          <Text style={[styles.req, /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) && styles.reqMet]}>✓ One special character</Text>
-        </View>
+      {onBack && (
+        <TouchableOpacity style={styles.backBtn} onPress={onBack} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+          <Ionicons name="chevron-back" size={26} color={COLORS.textMuted} />
+        </TouchableOpacity>
       )}
+      <Text style={styles.title}>VELOX</Text>
+      <Text style={styles.brandLine}>HIGH-PERFORMANCE TELEMETRY</Text>
 
-      {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+      {/* Terminal card */}
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>{isSignUp ? "Initialize Account" : "Access Terminal"}</Text>
+        <View style={styles.limeRule} />
 
-      <TouchableOpacity style={styles.button} onPress={handleAuth}>
-        <Text style={styles.buttonText}>{isSignUp ? "Sign Up" : "Log In"}</Text>
-      </TouchableOpacity>
+        <Text style={styles.fieldLabel}>Email or Username</Text>
+        <TextInput
+          style={[styles.input, focused === "email" && styles.inputFocused]}
+          placeholder="user@velox.system"
+          placeholderTextColor={COLORS.textDim}
+          value={email}
+          onChangeText={setEmail}
+          onFocus={() => setFocused("email")}
+          onBlur={() => setFocused(null)}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
 
-      <TouchableOpacity onPress={() => { setIsSignUp(!isSignUp); setPasswordError(""); }}>
-        <Text style={styles.switchText}>
-          {isSignUp ? "Already have an account? Log In" : "No account? Sign Up"}
-        </Text>
-      </TouchableOpacity>
+        <Text style={styles.fieldLabel}>Password</Text>
+        <TextInput
+          style={[styles.input, focused === "password" && styles.inputFocused]}
+          placeholder="••••••••"
+          placeholderTextColor={COLORS.textDim}
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (isSignUp) setPasswordError(validatePassword(text) || "");
+          }}
+          onFocus={() => setFocused("password")}
+          onBlur={() => setFocused(null)}
+          secureTextEntry
+        />
+
+        {isSignUp && (
+          <View style={styles.requirementsBox}>
+            <Text style={[styles.req, password.length >= 8 && styles.reqMet]}>✓ At least 8 characters</Text>
+            <Text style={[styles.req, /[A-Z]/.test(password) && styles.reqMet]}>✓ One capital letter</Text>
+            <Text style={[styles.req, /[0-9]/.test(password) && styles.reqMet]}>✓ One number</Text>
+            <Text style={[styles.req, /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) && styles.reqMet]}>✓ One special character</Text>
+          </View>
+        )}
+
+        {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+
+        <PressableScale style={styles.button} onPress={handleAuth} haptic>
+          <Text style={styles.buttonText}>{isSignUp ? "Create Account ⚡" : "Log In ⚡"}</Text>
+        </PressableScale>
+
+        <TouchableOpacity onPress={() => { setIsSignUp(!isSignUp); setPasswordError(""); }}>
+          <Text style={styles.switchText}>
+            {isSignUp ? "Already have an account? " : "Don't have an account? "}
+            <Text style={styles.switchAccent}>{isSignUp ? "Log In" : "Sign Up"}</Text>
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -99,62 +128,120 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#0D0D0D",
-    padding: 24,
+    backgroundColor: COLORS.base,
+    padding: SPACING.lg,
+  },
+  backBtn: {
+    position: "absolute",
+    top: 56,
+    left: SPACING.md,
+    zIndex: 10,
   },
   title: {
-    fontSize: 48,
-    fontWeight: "bold",
-    color: "#6C63FF",
-    marginBottom: 8,
+    fontFamily: FONTS.display,
+    fontSize: 56,
+    color: COLORS.primary,
+    letterSpacing: 1,
   },
-  subtitle: {
-    fontSize: 16,
-    color: "#888",
-    marginBottom: 40,
+  brandLine: {
+    fontFamily: FONTS.mono,
+    fontSize: 11,
+    color: COLORS.textMuted,
+    letterSpacing: 2,
+    marginBottom: SPACING.xl,
+    textTransform: "uppercase",
+  },
+  card: {
+    width: "100%",
+    maxWidth: 420,
+    backgroundColor: COLORS.surface2,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.borderStrong,
+    padding: SPACING.lg,
+  },
+  cardLabel: {
+    fontFamily: FONTS.heading,
+    fontSize: 20,
+    color: COLORS.text,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  limeRule: {
+    width: 40,
+    height: 3,
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.sm,
+    marginTop: 8,
+    marginBottom: SPACING.lg,
+  },
+  fieldLabel: {
+    fontFamily: FONTS.mono,
+    fontSize: 11,
+    color: COLORS.textMuted,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    marginBottom: 8,
   },
   input: {
     width: "100%",
-    backgroundColor: "#1A1A2E",
-    color: "#fff",
+    backgroundColor: COLORS.base,
+    color: COLORS.text,
     padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
+    borderRadius: RADIUS.md,
+    marginBottom: SPACING.md,
     fontSize: 16,
+    fontFamily: FONTS.body,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  inputFocused: {
+    borderColor: COLORS.primary,
   },
   requirementsBox: {
     width: "100%",
     marginBottom: 12,
   },
   req: {
-    color: "#888",
-    fontSize: 13,
+    fontFamily: FONTS.mono,
+    color: COLORS.textMuted,
+    fontSize: 12,
     marginBottom: 4,
   },
   reqMet: {
-    color: "#00C9A7",
+    color: COLORS.primary,
   },
   errorText: {
-    color: "#ff4d4d",
+    fontFamily: FONTS.body,
+    color: COLORS.error,
     fontSize: 13,
     marginBottom: 12,
     alignSelf: "flex-start",
   },
   button: {
     width: "100%",
-    backgroundColor: "#6C63FF",
+    backgroundColor: COLORS.primary,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     alignItems: "center",
-    marginBottom: 16,
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: FONTS.display,
+    color: COLORS.onPrimary,
+    fontSize: 18,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   switchText: {
-    color: "#6C63FF",
+    fontFamily: FONTS.body,
+    color: COLORS.textMuted,
     fontSize: 14,
+    textAlign: "center",
+  },
+  switchAccent: {
+    fontFamily: FONTS.bodySemiBold,
+    color: COLORS.primary,
   },
 });

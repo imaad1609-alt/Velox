@@ -1,9 +1,13 @@
+import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
+import { COLORS, FONTS, SPACING } from "../constants/theme";
 
 export default function Nutrition() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Nutrition</Text>
+      <Ionicons name="nutrition-outline" size={48} color={COLORS.primary} />
+      <Text style={styles.title}>Nutrition</Text>
+      <Text style={styles.sub}>Fuel tracking lands here soon</Text>
     </View>
   );
 }
@@ -13,10 +17,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#0D0D0D",
+    backgroundColor: COLORS.base,
+    gap: SPACING.sm,
   },
-  text: {
-    color: "#FFFFFF",
-    fontSize: 24,
+  title: {
+    fontFamily: FONTS.display,
+    color: COLORS.text,
+    fontSize: 32,
+    textTransform: "uppercase",
+    letterSpacing: -0.5,
+    marginTop: SPACING.sm,
+  },
+  sub: {
+    fontFamily: FONTS.mono,
+    color: COLORS.textMuted,
+    fontSize: 12,
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
 });

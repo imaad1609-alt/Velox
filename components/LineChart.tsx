@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Line, Polyline } from "react-native-svg";
+import { COLORS, FONTS } from "../constants/theme";
 
 type Props = {
   data: number[];          // y-values, chronological
@@ -11,7 +12,7 @@ type Props = {
 
 // Minimal line chart: baseline + max gridline, the series polyline, and dots.
 // Pure react-native-svg, no extra dependency.
-export const LineChart = ({ data, width, height = 160, color = "#6C63FF", unit = "" }: Props) => {
+export const LineChart = ({ data, width, height = 160, color = COLORS.primary, unit = "" }: Props) => {
   if (data.length === 0) {
     return (
       <View style={[styles.empty, { width, height }]}>
@@ -42,8 +43,8 @@ export const LineChart = ({ data, width, height = 160, color = "#6C63FF", unit =
     <View style={{ width }}>
       <Svg width={width} height={height}>
         {/* max + min gridlines */}
-        <Line x1={padL} y1={padT} x2={width - padR} y2={padT} stroke="#2A2A4A" strokeWidth={1} />
-        <Line x1={padL} y1={padT + plotH} x2={width - padR} y2={padT + plotH} stroke="#2A2A4A" strokeWidth={1} />
+        <Line x1={padL} y1={padT} x2={width - padR} y2={padT} stroke={COLORS.border} strokeWidth={1} />
+        <Line x1={padL} y1={padT + plotH} x2={width - padR} y2={padT + plotH} stroke={COLORS.border} strokeWidth={1} />
 
         {/* series */}
         {data.length > 1 && (
@@ -63,6 +64,6 @@ export const LineChart = ({ data, width, height = 160, color = "#6C63FF", unit =
 
 const styles = StyleSheet.create({
   empty: { alignItems: "center", justifyContent: "center", paddingHorizontal: 20 },
-  emptyText: { color: "#666", fontSize: 13, textAlign: "center", lineHeight: 19 },
-  yLabel: { position: "absolute", left: 0, width: 40, textAlign: "right", color: "#666", fontSize: 11 },
+  emptyText: { fontFamily: FONTS.body, color: COLORS.textDim, fontSize: 13, textAlign: "center", lineHeight: 19 },
+  yLabel: { position: "absolute", left: 0, width: 40, textAlign: "right", fontFamily: FONTS.mono, color: COLORS.textMuted, fontSize: 10 },
 });

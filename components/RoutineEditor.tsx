@@ -10,9 +10,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated from "react-native-reanimated";
 import { Exercise, MUSCLE_COLORS } from "../constants/exercises";
+import { enterDown, layout } from "../constants/motion";
+import { COLORS, FONTS, RADIUS, SPACING } from "../constants/theme";
 import { deleteRoutine, RoutineExercise, updateRoutine } from "../utils/routines";
 import { ExercisePicker } from "./ExercisePicker";
+import { PressableScale } from "./PressableScale";
+import { ReorderList } from "./ReorderList";
 
 type Props = {
   routineId: string;
@@ -31,6 +36,8 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
   const [showConfirm, setShowConfirm] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [menuExercise, setMenuExercise] = useState<number | null>(null);
+  const [showReorder, setShowReorder] = useState(false);
 
   // Baseline to diff against — captured once on mount.
   const initial = useRef({ name: initialName, exercises: initialExercises });
@@ -114,6 +121,23 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
     setExercises((prev) => prev.filter((_, i) => i !== ei));
   };
 
+  const moveExercise = (ei: number, dir: -1 | 1) => {
+    setExercises((prev) => {
+      const to = ei + dir;
+      if (to < 0 || to >= prev.length) return prev;
+      const u = [...prev];
+      const [m] = u.splice(ei, 1);
+      u.splice(to, 0, m);
+      return u;
+    });
+    setMenuExercise(null);
+  };
+
+  const applyOrder = (order: number[]) => {
+    setExercises((prev) => (order.length === prev.length ? order.map((i) => prev[i]) : prev));
+    setShowReorder(false);
+  };
+
   const addSet = (ei: number) => {
     setExercises((prev) => {
       const u = prev.map((ex) => ({ ...ex, sets: [...ex.sets] }));
@@ -155,7 +179,7 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
         <TextInput
           style={styles.nameInput}
           placeholder="Routine name"
-          placeholderTextColor="#555"
+          placeholderTextColor={COLORS.textDim}
           value={name}
           onChangeText={setName}
         />
@@ -165,12 +189,13 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
         )}
 
         {exercises.map((item, ei) => (
-          <LinearGradient key={ei} colors={["#1A1A2E", "#16213E"]} style={styles.exerciseCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+          <Animated.View key={ei} layout={layout} entering={enterDown()}>
+          <LinearGradient colors={[COLORS.surface1, "#161618"]} style={styles.exerciseCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
-              <View style={[styles.exDot, { backgroundColor: MUSCLE_COLORS[item.primaryMuscle] || "#6C63FF" }]} />
+              <View style={[styles.exDot, { backgroundColor: MUSCLE_COLORS[item.primaryMuscle] || COLORS.primary }]} />
               <Text style={styles.exerciseTitle}>{item.name}</Text>
-              <TouchableOpacity style={styles.deleteExBtn} onPress={() => deleteExercise(ei)}>
-                <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
+              <TouchableOpacity style={styles.deleteExBtn} onPress={() => setMenuExercise(ei)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="ellipsis-horizontal" size={20} color={COLORS.textMuted} />
               </TouchableOpacity>
             </View>
             <Text style={styles.exerciseSub}>{item.primaryMuscle} · {item.equipment}</Text>
@@ -181,26 +206,65 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
               <Text style={[styles.setCol, { flex: 0.5 }]}></Text>
             </View>
             {item.sets.map((set, si) => (
-              <View key={si} style={styles.setRow}>
+              <Animated.View key={si} layout={layout} style={styles.setRow}>
                 <Text style={[styles.setNum, { flex: 0.5 }]}>{si + 1}</Text>
-                <TextInput style={[styles.setInput, { flex: 1 }]} placeholder="—" placeholderTextColor="#555" keyboardType="numeric" value={set.weight} onChangeText={(v) => updateSet(ei, si, "weight", v)} />
-                <TextInput style={[styles.setInput, { flex: 1 }]} placeholder="—" placeholderTextColor="#555" keyboardType="numeric" value={set.reps} onChangeText={(v) => updateSet(ei, si, "reps", v)} />
+                <TextInput style={[styles.setInput, { flex: 1 }]} placeholder="—" placeholderTextColor={COLORS.textDim} keyboardType="numeric" value={set.weight} onChangeText={(v) => updateSet(ei, si, "weight", v)} />
+                <TextInput style={[styles.setInput, { flex: 1 }]} placeholder="—" placeholderTextColor={COLORS.textDim} keyboardType="numeric" value={set.reps} onChangeText={(v) => updateSet(ei, si, "reps", v)} />
                 <TouchableOpacity style={styles.deleteSetBtn} onPress={() => deleteSet(ei, si)}>
-                  <Ionicons name="close" size={18} color="#FF6B6B" />
+                  <Ionicons name="close" size={18} color={COLORS.error} />
                 </TouchableOpacity>
-              </View>
+              </Animated.View>
             ))}
             <TouchableOpacity style={styles.addSetBtn} onPress={() => addSet(ei)}>
               <Text style={styles.addSetText}>+ Add Set</Text>
             </TouchableOpacity>
           </LinearGradient>
+          </Animated.View>
         ))}
 
-        <TouchableOpacity style={styles.addExBtn} onPress={() => setShowPicker(true)}>
+        <PressableScale style={styles.addExBtn} onPress={() => setShowPicker(true)} haptic>
           <Text style={styles.addExText}>+ Add Exercise</Text>
-        </TouchableOpacity>
+        </PressableScale>
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Per-exercise options */}
+      <Modal visible={menuExercise !== null} transparent animationType="fade" onRequestClose={() => setMenuExercise(null)}>
+        <TouchableOpacity style={styles.menuOverlay} activeOpacity={1} onPress={() => setMenuExercise(null)}>
+          <View style={styles.menuSheet}>
+            <Text style={styles.menuTitle} numberOfLines={1}>
+              {menuExercise !== null ? exercises[menuExercise]?.name : ""}
+            </Text>
+            <TouchableOpacity style={[styles.menuOption, menuExercise === 0 && styles.menuOptionDisabled]} disabled={menuExercise === 0} onPress={() => menuExercise !== null && moveExercise(menuExercise, -1)}>
+              <Ionicons name="arrow-up" size={20} color={COLORS.textMuted} />
+              <Text style={styles.menuOptionText}>Move up</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.menuOption, menuExercise === exercises.length - 1 && styles.menuOptionDisabled]} disabled={menuExercise === exercises.length - 1} onPress={() => menuExercise !== null && moveExercise(menuExercise, 1)}>
+              <Ionicons name="arrow-down" size={20} color={COLORS.textMuted} />
+              <Text style={styles.menuOptionText}>Move down</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuOption} onPress={() => { setMenuExercise(null); setShowReorder(true); }} disabled={exercises.length < 2}>
+              <Ionicons name="reorder-three" size={20} color={COLORS.textMuted} />
+              <Text style={styles.menuOptionText}>Reorder all…</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuOption} onPress={() => { const ei = menuExercise; setMenuExercise(null); if (ei !== null) deleteExercise(ei); }}>
+              <Ionicons name="trash-outline" size={20} color={COLORS.error} />
+              <Text style={[styles.menuOptionText, { color: COLORS.error }]}>Remove exercise</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuCancel} onPress={() => setMenuExercise(null)}>
+              <Text style={styles.menuCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {showReorder && (
+        <ReorderList
+          items={exercises.map((e) => ({ label: e.name, color: MUSCLE_COLORS[e.primaryMuscle] || COLORS.primary }))}
+          onDone={applyOrder}
+          onClose={() => setShowReorder(false)}
+        />
+      )}
 
       {/* Save changes confirmation */}
       <Modal visible={showConfirm} transparent animationType="fade" onRequestClose={() => setShowConfirm(false)}>
@@ -228,38 +292,47 @@ export const RoutineEditor = ({ routineId, initialName, initialExercises, isNew,
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0D0D0D" },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingTop: 60, paddingBottom: 12, borderBottomWidth: 1, borderColor: "#1A1A2E" },
-  headerTitle: { color: "#FFF", fontSize: 17, fontWeight: "bold" },
-  headerAction: { color: "#00C9A7", fontSize: 16, fontWeight: "600" },
-  nameInput: { color: "#FFF", fontSize: 22, fontWeight: "bold", paddingHorizontal: 20, paddingVertical: 16 },
-  emptyHint: { color: "#666", fontSize: 14, lineHeight: 20, paddingHorizontal: 20, marginBottom: 8 },
-  exerciseCard: { marginHorizontal: 16, marginBottom: 16, borderRadius: 16, padding: 18, borderWidth: 1, borderColor: "#2A2A4A" },
+  container: { flex: 1, backgroundColor: COLORS.base },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: SPACING.lg, paddingTop: 60, paddingBottom: 12, borderBottomWidth: 1, borderColor: COLORS.border },
+  headerTitle: { fontFamily: FONTS.heading, color: COLORS.text, fontSize: 20, textTransform: "uppercase", letterSpacing: 0.4 },
+  headerAction: { fontFamily: FONTS.bodyBold, color: COLORS.primary, fontSize: 16 },
+  nameInput: { fontFamily: FONTS.heading, color: COLORS.text, fontSize: 24, paddingHorizontal: SPACING.lg, paddingVertical: 16, letterSpacing: 0.3 },
+  emptyHint: { fontFamily: FONTS.body, color: COLORS.textDim, fontSize: 14, lineHeight: 20, paddingHorizontal: SPACING.lg, marginBottom: 8 },
+  exerciseCard: { marginHorizontal: SPACING.md, marginBottom: SPACING.md, borderRadius: RADIUS.lg, padding: 18, borderWidth: 1, borderColor: COLORS.border, borderLeftWidth: 3, borderLeftColor: COLORS.secondary },
   exDot: { width: 10, height: 10, borderRadius: 5, marginRight: 10 },
-  exerciseTitle: { fontSize: 17, fontWeight: "bold", color: "#FFF", flex: 1 },
+  exerciseTitle: { fontFamily: FONTS.heading, fontSize: 18, color: COLORS.text, flex: 1, letterSpacing: 0.2 },
   deleteExBtn: { padding: 4 },
-  exerciseSub: { fontSize: 12, color: "#888", marginBottom: 14, marginLeft: 20 },
+  exerciseSub: { fontFamily: FONTS.body, fontSize: 12, color: COLORS.textMuted, marginBottom: 14, marginLeft: 20 },
   setHeader: { flexDirection: "row", marginBottom: 8 },
-  setCol: { fontSize: 11, color: "#666", fontWeight: "700", textTransform: "uppercase", textAlign: "center" },
+  setCol: { fontFamily: FONTS.mono, fontSize: 10, color: COLORS.textDim, letterSpacing: 0.5, textTransform: "uppercase", textAlign: "center" },
   setRow: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
-  setNum: { color: "#888", fontSize: 15, textAlign: "center" },
-  setInput: { backgroundColor: "#0D0D0D", color: "#FFF", borderRadius: 8, padding: 10, marginHorizontal: 3, fontSize: 15, textAlign: "center" },
+  setNum: { fontFamily: FONTS.monoBold, color: COLORS.textMuted, fontSize: 15, textAlign: "center" },
+  setInput: { fontFamily: FONTS.monoBold, backgroundColor: COLORS.base, color: COLORS.text, borderRadius: RADIUS.md, padding: 10, marginHorizontal: 3, fontSize: 15, textAlign: "center" },
   deleteSetBtn: { flex: 0.5, height: 38, alignItems: "center", justifyContent: "center" },
   addSetBtn: { marginTop: 8, alignItems: "center", padding: 8 },
-  addSetText: { color: "#6C63FF", fontSize: 14, fontWeight: "600" },
-  addExBtn: { marginHorizontal: 16, padding: 18, borderRadius: 16, borderWidth: 1, borderColor: "#2A2A4A", alignItems: "center" },
-  addExText: { color: "#6C63FF", fontSize: 16, fontWeight: "600" },
+  addSetText: { fontFamily: FONTS.bodySemiBold, color: COLORS.primary, fontSize: 14 },
+  addExBtn: { marginHorizontal: SPACING.md, padding: 18, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, alignItems: "center" },
+  addExText: { fontFamily: FONTS.bodySemiBold, color: COLORS.primary, fontSize: 16 },
+
+  menuOverlay: { flex: 1, backgroundColor: "#000000AA", justifyContent: "flex-end" },
+  menuSheet: { backgroundColor: COLORS.surface2, borderTopLeftRadius: RADIUS.lg, borderTopRightRadius: RADIUS.lg, padding: 20, paddingBottom: 40, borderTopWidth: 1, borderColor: COLORS.borderStrong },
+  menuTitle: { fontFamily: FONTS.heading, color: COLORS.text, fontSize: 17, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.4 },
+  menuOption: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderColor: COLORS.border },
+  menuOptionText: { fontFamily: FONTS.body, color: COLORS.text, fontSize: 16, flexShrink: 1 },
+  menuOptionDisabled: { opacity: 0.35 },
+  menuCancel: { marginTop: 16, padding: 14, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, alignItems: "center" },
+  menuCancelText: { fontFamily: FONTS.bodySemiBold, color: COLORS.textMuted, fontSize: 15 },
 
   confirmOverlay: { flex: 1, backgroundColor: "#000000CC", justifyContent: "center", alignItems: "center", padding: 32 },
-  confirmBox: { backgroundColor: "#1A1A2E", borderRadius: 20, padding: 24, width: "100%", maxWidth: 360, borderWidth: 1, borderColor: "#2A2A4A" },
-  confirmTitle: { color: "#FFF", fontSize: 20, fontWeight: "bold", marginBottom: 8 },
-  confirmMsg: { color: "#AAA", fontSize: 15, lineHeight: 21, marginBottom: 8 },
-  confirmError: { color: "#FF6B6B", fontSize: 13, marginBottom: 8 },
+  confirmBox: { backgroundColor: COLORS.surface2, borderRadius: RADIUS.lg, padding: 24, width: "100%", maxWidth: 360, borderWidth: 1, borderColor: COLORS.borderStrong },
+  confirmTitle: { fontFamily: FONTS.heading, color: COLORS.text, fontSize: 22, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 },
+  confirmMsg: { fontFamily: FONTS.body, color: COLORS.textMuted, fontSize: 15, lineHeight: 21, marginBottom: 8 },
+  confirmError: { fontFamily: FONTS.body, color: COLORS.error, fontSize: 13, marginBottom: 8 },
   confirmBtnRow: { flexDirection: "row", gap: 12, marginTop: 12 },
-  confirmDiscard: { flex: 1, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: "#2A2A4A", alignItems: "center" },
-  confirmDiscardText: { color: "#FF6B6B", fontSize: 15, fontWeight: "600" },
-  confirmSave: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: "#00C9A7", alignItems: "center" },
-  confirmSaveText: { color: "#0D0D0D", fontSize: 15, fontWeight: "bold" },
+  confirmDiscard: { flex: 1, padding: 14, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, alignItems: "center" },
+  confirmDiscardText: { fontFamily: FONTS.bodySemiBold, color: COLORS.error, fontSize: 15 },
+  confirmSave: { flex: 1, padding: 14, borderRadius: RADIUS.md, backgroundColor: COLORS.primary, alignItems: "center" },
+  confirmSaveText: { fontFamily: FONTS.bodyBold, color: COLORS.onPrimary, fontSize: 15 },
   confirmCancel: { marginTop: 12, padding: 12, alignItems: "center" },
-  confirmCancelText: { color: "#888", fontSize: 14, fontWeight: "600" },
+  confirmCancelText: { fontFamily: FONTS.bodySemiBold, color: COLORS.textMuted, fontSize: 14 },
 });

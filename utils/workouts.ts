@@ -1,9 +1,12 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
+  doc,
   getDocs,
   orderBy,
   query,
+  updateDoc,
 } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 
@@ -15,6 +18,7 @@ export type SavedSet = {
   reps: string;
   type?: "normal" | "warmup" | "drop" | "failure";
   rpe?: string;
+  note?: string;
 };
 
 export type SavedWorkout = {
@@ -25,10 +29,14 @@ export type SavedWorkout = {
   // Estimated active energy for this session. Read by the dashboard / nutrition
   // side — the workout section is the only place that writes it.
   caloriesBurned?: number;
+  // The routine this workout was started from, if any. Lets the routines list
+  // show "last performed".
+  routineId?: string;
   exercises: {
     name: string;
     primaryMuscle: string;
     note?: string;
+    supersetId?: string; // exercises sharing this were a superset
     sets: SavedSet[];
   }[];
 };
@@ -41,9 +49,24 @@ const workoutsCollection = () => {
   return collection(db, "users", uid, "workouts");
 };
 
+const workoutDoc = (id: string) => {
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error("Not logged in");
+  return doc(db, "users", uid, "workouts", id);
+};
+
 // Save a finished workout to the cloud
 export const saveWorkout = async (workout: SavedWorkout) => {
   await addDoc(workoutsCollection(), workout);
+};
+
+// Edit a previously-saved workout (from the history detail screen).
+export const updateWorkout = async (id: string, data: Omit<SavedWorkout, "id">) => {
+  await updateDoc(workoutDoc(id), data as Record<string, unknown>);
+};
+
+export const deleteWorkout = async (id: string) => {
+  await deleteDoc(workoutDoc(id));
 };
 
 // Get all of this user's workouts, newest first

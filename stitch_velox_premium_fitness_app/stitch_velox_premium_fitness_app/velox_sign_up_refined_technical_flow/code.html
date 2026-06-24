@@ -1,0 +1,259 @@
+<!DOCTYPE html><html class="dark" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>VELOX - Create Account</title>
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@600;700&amp;family=Inter:wght@400;600&amp;family=JetBrains+Mono:wght@600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#ffffff",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-highest": "#353534",
+                    "tertiary": "#ffffff",
+                    "on-tertiary-container": "#636565",
+                    "on-primary": "#283500",
+                    "secondary-fixed": "#dde1ff",
+                    "secondary-container": "#0043eb",
+                    "on-surface-variant": "#c4c9ac",
+                    "secondary": "#b8c3ff",
+                    "error": "#ffb4ab",
+                    "surface-container-high": "#2a2a2a",
+                    "surface-variant": "#353534",
+                    "on-secondary": "#002388",
+                    "on-secondary-container": "#c6ceff",
+                    "surface-container-lowest": "#0e0e0e",
+                    "tertiary-fixed": "#e2e2e2",
+                    "tertiary-container": "#e2e2e2",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "surface-container": "#201f1f",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "on-surface": "#e5e2e1",
+                    "on-secondary-fixed-variant": "#0035be",
+                    "surface-tint": "#abd600",
+                    "surface-bright": "#393939",
+                    "on-error": "#690005",
+                    "error-container": "#93000a",
+                    "primary-fixed": "#c3f400",
+                    "surface-dim": "#131313",
+                    "outline-variant": "#444933",
+                    "on-background": "#e5e2e1",
+                    "on-primary-fixed": "#161e00",
+                    "inverse-primary": "#506600",
+                    "on-secondary-fixed": "#001356",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "surface": "#131313",
+                    "background": "#131313",
+                    "primary-container": "#c3f400",
+                    "on-primary-container": "#556d00",
+                    "surface-container-low": "#1c1b1b",
+                    "secondary-fixed-dim": "#b8c3ff",
+                    "inverse-on-surface": "#313030",
+                    "primary-fixed-dim": "#abd600",
+                    "on-tertiary": "#2f3131",
+                    "on-primary-fixed-variant": "#3c4d00",
+                    "inverse-surface": "#e5e2e1",
+                    "outline": "#8e9379"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "xs": "4px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "margin-mobile": "20px",
+                    "base": "4px",
+                    "md": "16px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "label-caps": ["JetBrains Mono"],
+                    "display-lg": ["Archivo Narrow"],
+                    "headline-md": ["Archivo Narrow"],
+                    "display-lg-mobile": ["Archivo Narrow"],
+                    "data-heavy": ["Archivo Narrow"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "28px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "display-lg-mobile": ["40px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "data-heavy": ["32px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "26px", "letterSpacing": "0.01em", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0A0A0A; /* Deep Obsidian Base */
+            color: #E5E2E1;
+            overflow-x: hidden;
+        }
+        
+        .glow-effect:focus-within {
+            box-shadow: 0 0 12px 2px rgba(46, 91, 255, 0.2); /* Cobalt Blue Focus Glow */
+        }
+
+        .skewed-parallelogram {
+            clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .skewed-parallelogram:active {
+            transform: scale(0.95);
+        }
+
+        .input-precision-border {
+            border: 1px solid #2C2C2E;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-precision-border:focus {
+            border-color: #2E5BFF; /* Cobalt Blue Focus */
+            outline: none;
+        }
+
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(44, 44, 46, 0.5);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+<!-- Hero Background Layer -->
+<div class="fixed inset-0 z-0 overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-[60vh] md:h-full">
+<img alt="Velox Abstract Light Ribbons Background" class="w-full h-full object-cover opacity-60 mix-blend-screen" src="https://lh3.googleusercontent.com/aida/AP1WRLt_1zTVZ9_IquiLSFynQwtzc8I4MEwKtgqNfVTdfZo5SzqvciEnQcjXEhw2QZrTqxsA8rJDhCEZCWqa9XUONefPmAkzT538LLQCjWmBeGT9NnJg9oNRQmbj5lg--zQte-Ey5mKMInc5XM0QDPcGoNrP0aVzSlLbMKjiodrIb0E7B3lncyt1hIzMNNA2z3F9sdJpSKxFq4GCJPJf_gvjDRXnDcZwcORoAA1wp0SHLFCOibNGCRq9qGEIuusg">
+</div>
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-[#0A0A0A]/40 to-[#0A0A0A]"></div>
+</div>
+<!-- Main Content Canvas -->
+<main class="relative z-10 flex-1 flex flex-col items-center justify-center px-margin-mobile py-xl md:py-0">
+<!-- Brand Header Section -->
+<header class="mb-lg text-center">
+<h1 class="font-data-heavy text-data-heavy text-primary-fixed tracking-tighter mb-xs">VELOX</h1>
+<p class="font-body-md text-on-surface-variant uppercase tracking-widest text-[12px]">High Performance Telemetry</p>
+</header>
+<!-- Sign Up Card Container -->
+<div class="glass-panel w-full max-w-[480px] p-lg rounded-lg shadow-2xl relative overflow-hidden" style="transform: translate(0.24px, 4.39px);">
+<!-- Corner Accents for Technical Look -->
+<div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary-fixed/30 rounded-tl-lg"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary-fixed/30 rounded-br-lg"></div>
+<div class="mb-lg">
+<h2 class="font-headline-md text-headline-md-mobile md:text-headline-md text-primary mb-2">INITIALIZE ACCOUNT</h2>
+<div class="h-1 w-12 bg-primary-fixed"></div>
+</div>
+<!-- Form -->
+<form class="space-y-md">
+<!-- Username Field -->
+<div class="space-y-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Full Name</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary-container">person</span>
+<input class="w-full bg-surface-container-lowest input-precision-border py-4 pl-12 pr-4 font-body-md text-on-surface placeholder:text-on-surface-variant/30 rounded-none" placeholder="ATHLETE NAME" type="text">
+</div>
+</div>
+<!-- Email Field -->
+<div class="space-y-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Email</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary-container">alternate_email</span>
+<input class="w-full bg-surface-container-lowest input-precision-border py-4 pl-12 pr-4 font-body-md text-on-surface placeholder:text-on-surface-variant/30 rounded-none" placeholder="USER@VELOX.SYSTEM" type="email">
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Password</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-secondary-container">lock</span>
+<input class="w-full bg-surface-container-lowest input-precision-border py-4 pl-12 pr-12 font-body-md text-on-surface placeholder:text-on-surface-variant/30 rounded-none" placeholder="••••••••••••" type="password">
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+<!-- Password Helper Text -->
+<div class="flex items-center space-x-2 pt-1">
+<div class="flex space-x-1">
+<div class="w-4 h-1 bg-primary-fixed"></div>
+<div class="w-4 h-1 bg-primary-fixed"></div>
+<div class="w-4 h-1 bg-surface-container-highest"></div>
+<div class="w-4 h-1 bg-surface-container-highest"></div>
+</div>
+<p class="font-label-caps text-[10px] text-on-surface-variant/60 uppercase">Complexity: Tier 2 Secured</p>
+</div>
+</div>
+<!-- Action Button -->
+<div class="pt-lg">
+<button class="skewed-parallelogram w-full bg-primary-fixed py-4 font-data-heavy text-on-primary-fixed text-lg tracking-widest hover:brightness-110 active:brightness-90" type="submit">
+                        CREATE ACCOUNT
+                    </button>
+</div>
+</form>
+<!-- Legal/Secondary Actions -->
+<div class="mt-lg pt-md border-t border-outline-variant flex flex-col items-center space-y-md">
+
+<div class="flex justify-center space-x-gutter"><button class="flex items-center space-x-2 px-4 py-2 glass-panel rounded-lg hover:bg-surface-container-highest transition-colors group"><img class="w-5 h-5 grayscale opacity-80 group-hover:opacity-100" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzOLF16iTYzDHWO-8u4_od-faBUb9YdQ-M8Yxor72GVl6UVmeR-_YYWE6BameEqWh55CNPloleCbIc__yWLPKWvfC5pKZtoP_hrcFKWKe7mPfXFPA7pDIqPjCH6REWNcXZvFq8AQaisi3ik_7lWC6Rn8DScWIUFKzUDzIAn9mYMMAJFMcZ26GL5BHjFU18Z3epmSGKn1ACPKuki2CbNdMTJWBcHQgdbFbWiDuarqAl5DeppsRCHBjyCJ5gROR_ydvBNJQqVvF1b6H9"><span class="font-label-caps text-[10px] text-on-surface-variant uppercase">Google</span></button><button class="flex items-center space-x-2 px-4 py-2 glass-panel rounded-lg hover:bg-surface-container-highest transition-colors group"><span class="material-symbols-outlined text-on-surface text-[20px] opacity-80 group-hover:opacity-100">apple</span><span class="font-label-caps text-[10px] text-on-surface-variant uppercase">Apple</span></button></div><p class="font-body-md text-[14px] text-on-surface-variant">
+                    Already have an account? 
+                    <a class="text-primary-fixed font-semibold hover:underline decoration-primary-fixed underline-offset-4 ml-1" href="#">Log in</a>
+</p>
+<div class="flex space-x-4 pt-2"><a class="font-label-caps text-[10px] text-on-surface-variant/60 hover:text-primary-fixed uppercase tracking-widest transition-colors" href="#">Privacy Policy</a><span class="text-on-surface-variant/30">|</span><a class="font-label-caps text-[10px] text-on-surface-variant/60 hover:text-primary-fixed uppercase tracking-widest transition-colors" href="#">Terms of Service</a></div></div>
+</div>
+<!-- Footer Metadata -->
+<footer class="mt-xl opacity-30 pointer-events-none select-none hidden md:block">
+<div class="flex items-center space-x-md font-label-caps text-[10px] text-on-surface-variant">
+<span class="">SYSTEM_V.4.2.0</span>
+<span class="w-1 h-1 bg-on-surface-variant rounded-full"></span>
+<span class="">SECURED BY AES-256</span>
+<span class="w-1 h-1 bg-on-surface-variant rounded-full"></span>
+<span id="timestamp" class="">UPTIME: 14:57:17</span>
+</div>
+</footer>
+</main>
+<!-- Subtle Scanline Effect Overlay -->
+<div class="fixed inset-0 z-50 pointer-events-none" style="background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.005), rgba(0, 0, 255, 0.01)); background-size: 100% 4px, 3px 100%;"></div>
+<script>
+        // Update timestamp for "Technical" feel
+        function updateTimestamp() {
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                          now.getMinutes().toString().padStart(2, '0') + ':' + 
+                          now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('timestamp').textContent = `UPTIME: ${timeStr}`;
+        }
+        setInterval(updateTimestamp, 1000);
+        updateTimestamp();
+
+        // Micro-interaction: Parallax movement on form based on mouse
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
+            const card = document.querySelector('.glass-panel');
+            if (card) {
+                card.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            }
+        });
+    </script>
+
+
+</body></html>

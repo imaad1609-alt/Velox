@@ -1,6 +1,8 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeApp } from "firebase/app";
-import { initializeAuth, inMemoryPersistence } from "firebase/auth";
+import { browserLocalPersistence, getReactNativePersistence, initializeAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { Platform } from "react-native";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD4sHSEMbDI5DTpBkZWzsZrtSEQ3P_PVLI",
@@ -13,8 +15,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
+// Durable auth so a logged-in session survives an app restart (no re-login).
+// Native persists to AsyncStorage; web uses the browser's local persistence.
+// getReactNativePersistence only exists in Firebase's RN build and is only
+// referenced on native (the web build never reaches that branch).
 export const auth = initializeAuth(app, {
-  persistence: inMemoryPersistence,
+  persistence:
+    Platform.OS === "web"
+      ? browserLocalPersistence
+      : getReactNativePersistence(AsyncStorage),
 });
 
 // Cloud database — stores workouts/nutrition per user, synced across devices

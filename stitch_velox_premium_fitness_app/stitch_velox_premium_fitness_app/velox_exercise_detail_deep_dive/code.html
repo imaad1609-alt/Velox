@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Exercise Detail - Barbell Bench Press</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@100..900&family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-primary {
+            box-shadow: 0 0 15px -3px rgba(171, 214, 0, 0.2);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .line-chart-gradient {
+            background: linear-gradient(180deg, rgba(171, 214, 0, 0.1) 0%, rgba(19, 19, 19, 0) 100%);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#131313",
+                        "primary-fixed-dim": "#abd600",
+                        "tertiary": "#ffffff",
+                        "on-primary": "#283500",
+                        "surface-container": "#201f1f",
+                        "on-surface": "#e5e2e1",
+                        "on-primary-container": "#556d00",
+                        "on-secondary": "#002388",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "error-container": "#93000a",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "secondary-fixed-dim": "#b8c3ff",
+                        "surface-container-highest": "#353534",
+                        "surface-container-lowest": "#0e0e0e",
+                        "primary-fixed": "#c3f400",
+                        "on-error-container": "#ffdad6",
+                        "primary-container": "#c3f400",
+                        "primary": "#ffffff",
+                        "secondary": "#2E5BFF",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "secondary-fixed": "#dde1ff",
+                        "on-background": "#e5e2e1",
+                        "outline-variant": "#444933",
+                        "tertiary-fixed": "#e2e2e2",
+                        "outline": "#8e9379",
+                        "on-surface-variant": "#c4c9ac",
+                        "on-error": "#690005",
+                        "error": "#ffb4ab",
+                        "secondary-container": "#0043eb",
+                        "inverse-on-surface": "#313030",
+                        "inverse-surface": "#e5e2e1",
+                        "on-secondary-fixed": "#001356",
+                        "surface-tint": "#abd600",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-bright": "#393939",
+                        "on-primary-fixed": "#161e00",
+                        "surface-variant": "#353534",
+                        "on-primary-fixed-variant": "#3c4d00",
+                        "surface-container-low": "#1c1b1b",
+                        "background": "#0A0A0A",
+                        "tertiary-container": "#e2e2e2",
+                        "surface-dim": "#131313",
+                        "inverse-primary": "#506600",
+                        "on-secondary-fixed-variant": "#0035be",
+                        "on-tertiary": "#2f3131",
+                        "on-tertiary-container": "#636565",
+                        "on-secondary-container": "#c6ceff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "4px",
+                        "lg": "4px",
+                        "xl": "8px",
+                        "full": "12px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "margin-mobile": "20px",
+                        "xl": "32px",
+                        "gutter": "16px",
+                        "lg": "24px",
+                        "base": "4px",
+                        "xs": "4px",
+                        "sm": "8px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Archivo Narrow"],
+                        "body-lg": ["Inter"],
+                        "data-heavy": ["Archivo Narrow"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Archivo Narrow"],
+                        "display-lg-mobile": ["Archivo Narrow"],
+                        "label-caps": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "26px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "data-heavy": ["32px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "28px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "display-lg-mobile": ["40px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-fixed-dim selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-surface border-b border-surface-container-highest flex items-center justify-between px-margin-mobile h-14">
+<button class="transition-all duration-200 active:scale-95 text-primary-fixed-dim flex items-center justify-center">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary-fixed-dim">Exercise Details</h1>
+<button class="transition-all duration-200 active:scale-95 text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</header>
+<main class="pb-24">
+<!-- Hero Section -->
+<section class="px-margin-mobile pt-lg pb-md">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div class="space-y-sm">
+<span class="font-label-caps text-label-caps text-primary-fixed-dim tracking-widest">CHEST • COMPOUND</span>
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-primary leading-none uppercase">Barbell Bench Press</h2>
+</div>
+<div class="inline-flex items-center px-md py-xs bg-surface-container-highest border border-outline-variant rounded">
+<span class="font-label-caps text-label-caps text-on-surface-variant">DIFFICULTY:</span>
+<span class="ml-2 font-label-caps text-label-caps text-primary-fixed-dim">ADVANCED</span>
+</div>
+</div>
+<!-- Anatomical Heatmap Placeholder / SVG Canvas -->
+<div class="mt-lg w-full aspect-[16/9] bg-surface-container-lowest border border-surface-container-highest relative overflow-hidden flex items-center justify-center rounded">
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, #2C2C2E 1px, transparent 0); background-size: 24px 24px;"></div>
+<!-- Mock Anatomical SVG -->
+<svg class="w-full h-full max-w-lg p-md" viewbox="0 0 400 200">
+<g fill="none" stroke="#2C2C2E" stroke-width="1.5">
+<!-- Human Torso Silhouette -->
+<path d="M200,20 C180,20 160,30 150,50 C140,70 140,100 140,130 C140,160 160,180 200,180 C240,180 260,160 260,130 C260,100 260,70 250,50 C240,30 220,20 200,20 Z"></path>
+<!-- Arm Lines -->
+<path d="M150,55 L100,80 L80,140"></path>
+<path d="M250,55 L300,80 L320,140"></path>
+<!-- Highlighted Muscle Groups (Primary) -->
+<path d="M165,70 Q200,65 235,70 Q230,110 200,115 Q170,110 165,70" fill="#abd600" fill-opacity="0.6" stroke="#abd600"></path> <!-- Pectorals -->
+<!-- Highlighted Muscle Groups (Secondary) -->
+<path d="M125,70 L115,100 L130,110 Z" fill="#2E5BFF" fill-opacity="0.4" stroke="#2E5BFF"></path> <!-- Left Tricep -->
+<path d="M275,70 L285,100 L270,110 Z" fill="#2E5BFF" fill-opacity="0.4" stroke="#2E5BFF"></path> <!-- Right Tricep -->
+</g>
+<text class="font-label-caps text-[10px]" fill="#abd600" x="10" y="180">● PRIMARY: PECTORALS</text>
+<text class="font-label-caps text-[10px]" fill="#2E5BFF" x="10" y="195">● SECONDARY: TRICEPS</text>
+</svg>
+</div>
+</section>
+<!-- Segmented Tabs -->
+<nav class="sticky top-14 bg-background z-40 px-margin-mobile py-sm border-b border-surface-container-highest overflow-x-auto hide-scrollbar">
+<div class="flex gap-xs min-w-max">
+<button class="px-lg py-sm bg-surface-container-highest text-primary-fixed-dim font-label-caps text-label-caps border border-primary-fixed-dim/20 rounded">ABOUT</button>
+<button class="px-lg py-sm text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-container-low transition-colors rounded">HISTORY</button>
+<button class="px-lg py-sm text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-container-low transition-colors rounded">CHARTS</button>
+<button class="px-lg py-sm text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-container-low transition-colors rounded">RECORDS</button>
+</div>
+</nav>
+<!-- Content Area -->
+<div class="px-margin-mobile space-y-xl mt-lg">
+<!-- Section: About -->
+<section class="space-y-lg">
+<div class="grid grid-cols-2 gap-md">
+<div class="p-md bg-surface-container border border-surface-container-highest rounded">
+<span class="font-label-caps text-[10px] text-on-surface-variant block mb-1">EQUIPMENT</span>
+<p class="font-body-md text-primary font-medium">Barbell, Flat Bench</p>
+</div>
+<div class="p-md bg-surface-container border border-surface-container-highest rounded">
+<span class="font-label-caps text-[10px] text-on-surface-variant block mb-1">MUSCLE GROUP</span>
+<p class="font-body-md text-primary font-medium">Chest (Major/Minor)</p>
+</div>
+</div>
+<div class="space-y-md">
+<h3 class="font-headline-md text-primary-fixed-dim border-l-2 border-primary-fixed-dim pl-md uppercase tracking-wider">Instructions</h3>
+<ol class="space-y-md">
+<li class="flex gap-md">
+<span class="font-label-caps text-primary-fixed-dim">01.</span>
+<p class="text-on-surface leading-relaxed">Position yourself on the flat bench with your eyes directly under the bar. Ensure your feet are planted firmly on the floor.</p>
+</li>
+<li class="flex gap-md">
+<span class="font-label-caps text-primary-fixed-dim">02.</span>
+<p class="text-on-surface leading-relaxed">Grip the bar with hands slightly wider than shoulder-width apart. Wrap your thumbs around the bar (suicide grip is prohibited).</p>
+</li>
+<li class="flex gap-md">
+<span class="font-label-caps text-primary-fixed-dim">03.</span>
+<p class="text-on-surface leading-relaxed">Retract your scapula and create a slight arch in your lower back. Unrack the bar and stabilize it over your mid-chest.</p>
+</li>
+<li class="flex gap-md">
+<span class="font-label-caps text-primary-fixed-dim">04.</span>
+<p class="text-on-surface leading-relaxed">Lower the bar in a controlled eccentric phase to the nipple line. Touch lightly and press vertically to full lockout.</p>
+</li>
+</ol>
+</div>
+</section>
+<!-- Section: Charts (Visible in design) -->
+<section class="space-y-md">
+<div class="flex justify-between items-end">
+<h3 class="font-headline-md text-primary-fixed-dim border-l-2 border-primary-fixed-dim pl-md uppercase tracking-wider">Estimated 1RM Trend</h3>
+<span class="font-label-caps text-label-caps text-secondary">6 MONTHS</span>
+</div>
+<div class="h-64 w-full bg-surface-container border border-surface-container-highest rounded p-md relative overflow-hidden">
+<div class="absolute inset-0 flex flex-col justify-between p-4 opacity-10">
+<div class="border-b border-secondary w-full"></div>
+<div class="border-b border-secondary w-full"></div>
+<div class="border-b border-secondary w-full"></div>
+<div class="border-b border-secondary w-full"></div>
+</div>
+<!-- Mock Line Chart -->
+<svg class="w-full h-full preserve-3d" preserveaspectratio="none" viewbox="0 0 100 50">
+<path d="M0,45 L10,42 L20,44 L30,38 L40,35 L50,30 L60,32 L70,25 L80,22 L90,15 L100,10" fill="none" stroke="#abd600" stroke-width="1" vector-effect="non-scaling-stroke"></path>
+<path d="M0,45 L10,42 L20,44 L30,38 L40,35 L50,30 L60,32 L70,25 L80,22 L90,15 L100,10 L100,50 L0,50 Z" fill="url(#chartGrad)"></path>
+<defs>
+<lineargradient id="chartGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#abd600" stop-opacity="0.1"></stop>
+<stop offset="100%" stop-color="#abd600" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+<!-- Chart Labels -->
+<div class="absolute bottom-2 left-2 right-2 flex justify-between font-label-caps text-[8px] text-on-surface-variant">
+<span>JAN</span>
+<span>MAR</span>
+<span>JUN</span>
+</div>
+</div>
+</section>
+<!-- Section: Records (Visible in design) -->
+<section class="space-y-md">
+<h3 class="font-headline-md text-primary-fixed-dim border-l-2 border-primary-fixed-dim pl-md uppercase tracking-wider">Performance Records</h3>
+<div class="grid grid-cols-1 gap-sm">
+<!-- Record Card 1 -->
+<div class="flex justify-between items-center p-md bg-surface-container border border-surface-container-highest rounded hover:border-primary-fixed-dim transition-colors group">
+<div class="space-y-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant">PERSONAL RECORD</span>
+<p class="font-data-heavy text-data-heavy text-primary">120 <span class="text-body-md font-normal text-on-surface-variant">KG</span></p>
+</div>
+<div class="text-right">
+<span class="font-label-caps text-[10px] text-primary-fixed-dim bg-primary-fixed-dim/10 px-2 py-0.5 rounded">NEW PR</span>
+<p class="font-label-caps text-[10px] text-on-surface-variant mt-1">2023-11-15</p>
+</div>
+</div>
+<!-- Record Card 2 -->
+<div class="flex justify-between items-center p-md bg-surface-container border border-surface-container-highest rounded hover:border-primary-fixed-dim transition-colors group">
+<div class="space-y-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant">BEST TOTAL VOLUME</span>
+<p class="font-data-heavy text-data-heavy text-primary">4,500 <span class="text-body-md font-normal text-on-surface-variant">KG</span></p>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-[10px] text-on-surface-variant mt-1">5 SETS • 12 REPS</p>
+</div>
+</div>
+<!-- Record Card 3 -->
+<div class="flex justify-between items-center p-md bg-surface-container border border-surface-container-highest rounded hover:border-primary-fixed-dim transition-colors group">
+<div class="space-y-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant">ESTIMATED 1RM</span>
+<p class="font-data-heavy text-data-heavy text-primary">142 <span class="text-body-md font-normal text-on-surface-variant">KG</span></p>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-[10px] text-on-surface-variant mt-1">EPLER FORMULA</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Bottom Action Bar (Non-standard FAB replacement for focus) -->
+<div class="fixed bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-md border-t border-surface-container-highest p-margin-mobile md:hidden z-50">
+<button class="w-full bg-primary-fixed-dim text-on-primary font-label-caps py-md rounded transition-all active:scale-95 glow-primary flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">add</span>
+            LOG SET
+        </button>
+</div>
+<!-- Navigation Shell Placeholder (Suppressed for detail view per rules, but showing structure for Desktop) -->
+<nav class="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-surface border-r border-surface-container-highest flex-col p-lg gap-xl">
+<div class="font-display-lg text-primary-fixed-dim tracking-tighter mb-xl">PREX</div>
+<div class="flex flex-col gap-sm">
+<button class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded transition-all">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="font-label-caps">WORKOUT</span>
+</button>
+<button class="flex items-center gap-md px-md py-sm text-primary-fixed-dim bg-surface-container-highest rounded transition-all">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-label-caps">EXERCISES</span>
+</button>
+<button class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded transition-all">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-caps">PROGRESS</span>
+</button>
+<button class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded transition-all">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-caps">PROFILE</span>
+</button>
+</div>
+</nav>
+<!-- Bottom Nav Bar (Mobile - Visible but contextual suppression rules applied for Detail pages, kept as reference) -->
+<footer class="md:hidden fixed bottom-0 w-full z-50 rounded-t-lg bg-surface-container-lowest border-t border-surface-container-highest h-20 px-2 pb-safe flex justify-around items-center opacity-40 grayscale pointer-events-none">
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="font-label-caps text-[10px] mt-1">Workout</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary-fixed-dim bg-surface-container-highest rounded-xl px-4 py-1">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-label-caps text-[10px] mt-1">Exercises</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-caps text-[10px] mt-1">Progress</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-caps text-[10px] mt-1">Profile</span>
+</div>
+</footer>
+<script>
+        // Micro-interaction for tabs
+        const tabs = document.querySelectorAll('nav button');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    t.classList.remove('bg-surface-container-highest', 'text-primary-fixed-dim', 'border', 'border-primary-fixed-dim/20');
+                    t.classList.add('text-on-surface-variant');
+                });
+                tab.classList.add('bg-surface-container-highest', 'text-primary-fixed-dim', 'border', 'border-primary-fixed-dim/20');
+                tab.classList.remove('text-on-surface-variant');
+            });
+        });
+    </script>
+</body></html>

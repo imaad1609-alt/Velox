@@ -30,6 +30,8 @@ export type Routine = {
   exercises: RoutineExercise[];
   createdAt: number;
   updatedAt: number;
+  // The folder this routine belongs to. Undefined / unknown → "Uncategorized".
+  folderId?: string | null;
 };
 
 // Helper: the path to THIS user's routines folder in Firestore
@@ -81,11 +83,24 @@ export const createRoutine = async (name = "New Routine"): Promise<string> => {
 // Patch a routine. Always bumps updatedAt so the list re-sorts to the top.
 export const updateRoutine = async (
   id: string,
-  data: Partial<Pick<Routine, "name" | "exercises">>
+  data: Partial<Pick<Routine, "name" | "exercises" | "folderId">>
 ): Promise<void> => {
   await updateDoc(routineDoc(id), { ...data, updatedAt: Date.now() });
 };
 
 export const deleteRoutine = async (id: string): Promise<void> => {
   await deleteDoc(routineDoc(id));
+};
+
+// Create a copy of an existing routine (same exercises/folder, name + " (copy)").
+export const duplicateRoutine = async (routine: Routine): Promise<string> => {
+  const now = Date.now();
+  const ref = await addDoc(routinesCollection(), {
+    name: `${routine.name} (copy)`,
+    exercises: routine.exercises,
+    createdAt: now,
+    updatedAt: now,
+    ...(routine.folderId ? { folderId: routine.folderId } : {}),
+  });
+  return ref.id;
 };

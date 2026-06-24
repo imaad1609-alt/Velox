@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VELOX | Performance Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#abd600",
+                        "secondary-fixed": "#dde1ff",
+                        "on-tertiary-container": "#636565",
+                        "tertiary-container": "#e2e2e2",
+                        "surface-container": "#201f1f",
+                        "on-secondary-fixed": "#001356",
+                        "inverse-primary": "#506600",
+                        "surface-tint": "#abd600",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "tertiary": "#ffffff",
+                        "primary-container": "#c3f400",
+                        "outline-variant": "#444933",
+                        "on-primary-fixed": "#161e00",
+                        "surface": "#131313",
+                        "primary-fixed": "#c3f400",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-highest": "#353534",
+                        "on-primary-fixed-variant": "#3c4d00",
+                        "secondary-fixed-dim": "#b8c3ff",
+                        "on-surface-variant": "#c4c9ac",
+                        "on-secondary-fixed-variant": "#0035be",
+                        "inverse-on-surface": "#313030",
+                        "secondary": "#b8c3ff",
+                        "on-tertiary": "#2f3131",
+                        "on-secondary-container": "#c6ceff",
+                        "on-primary": "#283500",
+                        "error": "#ffb4ab",
+                        "surface-variant": "#353534",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "secondary-container": "#0043eb",
+                        "error-container": "#93000a",
+                        "surface-dim": "#131313",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "surface-bright": "#393939",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "on-primary-container": "#556d00",
+                        "background": "#131313",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-container-high": "#2a2a2a",
+                        "inverse-surface": "#e5e2e1",
+                        "primary": "#ffffff",
+                        "on-secondary": "#002388",
+                        "surface-container-low": "#1c1b1b",
+                        "on-background": "#e5e2e1",
+                        "surface-container-lowest": "#0e0e0e",
+                        "outline": "#8e9379",
+                        "brand-obsidian": "#0A0A0A",
+                        "brand-charcoal": "#121212",
+                        "brand-lime": "#CCFF00",
+                        "brand-cobalt": "#2E5BFF"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "4px",
+                        "lg": "4px",
+                        "xl": "8px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "margin-mobile": "20px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "base": "4px",
+                        "sm": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Archivo Narrow"],
+                        "label-caps": ["JetBrains Mono"],
+                        "display-lg": ["Archivo Narrow"],
+                        "data-heavy": ["Archivo Narrow"],
+                        "display-lg-mobile": ["Archivo Narrow"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "26px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "28px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "data-heavy": ["32px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "display-lg-mobile": ["40px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0A0A0A;
+            color: #e5e2e1;
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .brand-gradient-bar {
+            background: linear-gradient(90deg, #2E5BFF 0%, #CCFF00 100%);
+        }
+        .beveled-edge {
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+        .glow-lime:active {
+            box-shadow: 0 0 12px 2px rgba(204, 255, 0, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-brand-obsidian min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-background border-b border-outline-variant flex justify-between items-center px-margin-mobile h-14 w-full">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="High-contrast studio portrait of a fit athlete with sharp lighting, monochromatic obsidian background, professional fitness photography style with subtle electric lime highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoQG3Wn9kAbfZBL-wm_6r8boHyjXBRx7rKFM3sO_6S9J0tA6AHKIjef1s9nP0kiw4hp2VHwjhx6lFRWErPZkRDUNuU0gq-12UyU6Ifrp4IMwEZawNcW0rMH631IFx9dBvymbrko_YmJwmr1wYI6RWWeY7z-aPQiO-IwxYxwEEJS1GLsmDcrRdwTQgVZaLWVMgEX4Tw9i1BncJl2V9RFITF4uC3SaCF3M-69ifNJmajRfUnzkXWwH7xiU6rFjMU0XDTSEsm5A38c1iP"/>
+</div>
+<span class="font-data-heavy text-data-heavy text-primary-fixed">VELOX</span>
+</div>
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-highest transition-colors p-2 rounded-full">
+            monitoring
+        </button>
+</header>
+<main class="pt-20 px-margin-mobile max-w-3xl mx-auto space-y-lg">
+<!-- Welcome Section -->
+<section class="space-y-xs">
+<h1 class="font-headline-md text-headline-md-mobile text-primary">Good morning, Imaad</h1>
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest" id="current-date">MONDAY, 12 JUN 2023</p>
+</section>
+<!-- Today's Workout Card -->
+<section>
+<div class="bg-brand-charcoal border border-outline-variant p-md rounded relative overflow-hidden beveled-edge">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-lime"></div>
+<div class="flex flex-col gap-md">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-label-caps text-[10px] text-brand-lime uppercase tracking-tighter">Session Status</span>
+<h2 class="font-headline-md text-headline-md-mobile text-primary mt-xs">NO SESSION INITIALIZED</h2>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">timer</span>
+</div>
+<button class="w-full bg-brand-lime text-black font-data-heavy py-md rounded-lg flex items-center justify-center gap-sm transition-transform active:scale-[0.98] glow-lime">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                        START WORKOUT
+                    </button>
+</div>
+</div>
+</section>
+<!-- Nutrition Summary Card -->
+<section>
+<div class="bg-brand-charcoal border border-outline-variant p-md rounded beveled-edge">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-md text-headline-md-mobile text-primary">Nutrition</h3>
+<span class="font-label-caps text-brand-cobalt">1,840 / 2,400 KCAL</span>
+</div>
+<div class="space-y-md">
+<!-- Progress Bar Component -->
+<div class="space-y-xs">
+<div class="flex justify-between font-label-caps text-[10px] text-on-surface-variant">
+<span>PROTEIN</span>
+<span class="text-primary">165g / 200g</span>
+</div>
+<div class="h-1 bg-surface-container-highest w-full rounded-full overflow-hidden">
+<div class="h-full brand-gradient-bar" style="width: 82.5%"></div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="space-y-xs">
+<div class="flex justify-between font-label-caps text-[10px] text-on-surface-variant">
+<span>CARBS</span>
+<span class="text-primary">140g</span>
+</div>
+<div class="h-1 bg-surface-container-highest w-full rounded-full overflow-hidden">
+<div class="h-full brand-gradient-bar" style="width: 45%"></div>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between font-label-caps text-[10px] text-on-surface-variant">
+<span>FAT</span>
+<span class="text-primary">52g</span>
+</div>
+<div class="h-1 bg-surface-container-highest w-full rounded-full overflow-hidden">
+<div class="h-full brand-gradient-bar" style="width: 60%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Activity -->
+<section class="space-y-md">
+<div class="flex justify-between items-end">
+<h3 class="font-headline-md text-headline-md-mobile text-primary">Recent Activity</h3>
+<a class="font-label-caps text-brand-cobalt hover:underline" href="#">VIEW ALL</a>
+</div>
+<div class="space-y-sm">
+<!-- Activity Item 1 -->
+<div class="bg-brand-charcoal border border-outline-variant p-md flex justify-between items-center transition-colors hover:bg-surface-container-highest cursor-pointer">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 bg-surface-container-low border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-brand-lime">fitness_center</span>
+</div>
+<div>
+<p class="font-headline-md text-body-lg text-primary">LEG DAY ALPHA</p>
+<p class="font-label-caps text-[10px] text-on-surface-variant">10 JUN • 72 MIN</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-brand-cobalt">14,250 KG</p>
+<p class="font-label-caps text-[10px] text-on-surface-variant">TOTAL VOL</p>
+</div>
+</div>
+<!-- Activity Item 2 -->
+<div class="bg-brand-charcoal border border-outline-variant p-md flex justify-between items-center transition-colors hover:bg-surface-container-highest cursor-pointer">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 bg-surface-container-low border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-brand-lime">directions_run</span>
+</div>
+<div>
+<p class="font-headline-md text-body-lg text-primary">ZONE 2 CARDIO</p>
+<p class="font-label-caps text-[10px] text-on-surface-variant">08 JUN • 45 MIN</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-brand-cobalt">6.2 KM</p>
+<p class="font-label-caps text-[10px] text-on-surface-variant">DISTANCE</p>
+</div>
+</div>
+<!-- Activity Item 3 -->
+<div class="bg-brand-charcoal border border-outline-variant p-md flex justify-between items-center transition-colors hover:bg-surface-container-highest cursor-pointer">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 bg-surface-container-low border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-brand-lime" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+<div>
+<p class="font-headline-md text-body-lg text-primary">PULL BETA (PR)</p>
+<p class="font-label-caps text-[10px] text-on-surface-variant">07 JUN • 68 MIN</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-label-caps text-brand-lime">11,800 KG</p>
+<p class="font-label-caps text-[10px] text-on-surface-variant">TOTAL VOL</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-xs pb-safe bg-surface-container border-t border-outline-variant h-[72px]">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center text-primary-fixed font-bold transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-caps text-label-caps mt-xs">Home</span>
+</a>
+<!-- Workout -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="font-label-caps text-label-caps mt-xs">Workout</span>
+</a>
+<!-- Nutrition -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">nutrition</span>
+<span class="font-label-caps text-label-caps mt-xs">Nutrition</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-caps text-label-caps mt-xs">Profile</span>
+</a>
+</nav>
+<script>
+        // Simple script to set the current date in JetBrains Mono
+        const dateElement = document.getElementById('current-date');
+        const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+        const today = new Date();
+        dateElement.textContent = today.toLocaleDateString('en-US', options).toUpperCase();
+
+        // Micro-interaction for the start workout button
+        const startBtn = document.querySelector('button.bg-brand-lime');
+        startBtn.addEventListener('click', () => {
+            startBtn.classList.add('bg-white');
+            setTimeout(() => startBtn.classList.remove('bg-white'), 100);
+        });
+    </script>
+</body></html>

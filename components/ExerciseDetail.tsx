@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Exercise, MUSCLE_COLORS } from "../constants/exercises";
+import { COLORS, FONTS, RADIUS } from "../constants/theme";
 import {
   computeExerciseStats,
   EMPTY_STATS,
@@ -31,10 +32,13 @@ export const ExerciseDetail = ({
   exercise,
   onAdd,
   onClose,
+  browseMode = false,
 }: {
   exercise: Exercise;
-  onAdd: () => void;
+  onAdd?: () => void;
   onClose: () => void;
+  // Browse mode (from Explore): view-only, no "Add to Workout" CTA.
+  browseMode?: boolean;
 }) => {
   const [tab, setTab] = useState<Tab>("summary");
   const [stats, setStats] = useState<ExerciseStats | null>(null);
@@ -53,7 +57,7 @@ export const ExerciseDetail = ({
   const chartData = useMemo(() => s.sessions.map((sess) => sess[metric]), [s.sessions, metric]);
   const activeMetric = METRICS.find((m) => m.key === metric)!;
 
-  const accent = MUSCLE_COLORS[exercise.primaryMuscle] || "#6C63FF";
+  const accent = MUSCLE_COLORS[exercise.primaryMuscle] || COLORS.primary;
 
   return (
     <View style={styles.container}>
@@ -165,7 +169,7 @@ export const ExerciseDetail = ({
               </View>
               <View>
                 <Text style={styles.detailLabel}>DIFFICULTY</Text>
-                <Text style={[styles.metaValue, { color: exercise.difficulty === "Beginner" ? "#00C9A7" : exercise.difficulty === "Intermediate" ? "#FF9F43" : "#FF6B6B" }]}>{exercise.difficulty}</Text>
+                <Text style={[styles.metaValue, { color: exercise.difficulty === "Beginner" ? COLORS.primary : exercise.difficulty === "Intermediate" ? COLORS.warning : COLORS.error }]}>{exercise.difficulty}</Text>
               </View>
             </View>
 
@@ -191,12 +195,14 @@ export const ExerciseDetail = ({
         )}
       </ScrollView>
 
-      {/* Add to workout */}
-      <TouchableOpacity style={styles.addConfirmBtn} onPress={onAdd}>
-        <LinearGradient colors={["#6C63FF", "#4ECDC4"]} style={styles.addConfirmGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-          <Text style={styles.addConfirmText}>+ Add to Workout</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+      {/* Add to workout (hidden when just browsing the library) */}
+      {!browseMode && (
+        <TouchableOpacity style={styles.addConfirmBtn} onPress={onAdd}>
+          <LinearGradient colors={[COLORS.primary, COLORS.primaryDim]} style={styles.addConfirmGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+            <Text style={styles.addConfirmText}>+ Add to Workout</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -223,50 +229,50 @@ const HistoryRow = ({ session, accent }: { session: ExerciseSession; accent: str
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
-  back: { color: "#6C63FF", fontSize: 16, width: 60 },
-  headerTitle: { flex: 1, color: "#FFF", fontSize: 18, fontWeight: "bold", textAlign: "center" },
-  tabs: { flexDirection: "row", borderBottomWidth: 1, borderColor: "#1A1A2E", marginBottom: 16 },
+  back: { fontFamily: FONTS.bodySemiBold, color: COLORS.primary, fontSize: 16, width: 60 },
+  headerTitle: { flex: 1, fontFamily: FONTS.heading, color: COLORS.text, fontSize: 20, textAlign: "center", textTransform: "uppercase", letterSpacing: 0.3 },
+  tabs: { flexDirection: "row", borderBottomWidth: 1, borderColor: COLORS.border, marginBottom: 16 },
   tab: { flex: 1, alignItems: "center", paddingVertical: 12 },
-  tabText: { color: "#888", fontSize: 14, fontWeight: "600" },
-  tabTextActive: { color: "#6C63FF" },
-  tabUnderline: { position: "absolute", bottom: -1, height: 2, width: "60%", backgroundColor: "#6C63FF", borderRadius: 1 },
+  tabText: { fontFamily: FONTS.mono, color: COLORS.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.5 },
+  tabTextActive: { color: COLORS.primary },
+  tabUnderline: { position: "absolute", bottom: -1, height: 2, width: "60%", backgroundColor: COLORS.primary, borderRadius: 1 },
 
-  mediaBox: { backgroundColor: "#FFF", borderRadius: 12, marginBottom: 16, overflow: "hidden" },
+  mediaBox: { backgroundColor: "#FFF", borderRadius: RADIUS.lg, marginBottom: 16, overflow: "hidden" },
   media: { width: "100%", height: 220 },
-  muscleMapBox: { backgroundColor: "#1A1A2E", borderRadius: 12, paddingVertical: 16, marginBottom: 16 },
+  muscleMapBox: { backgroundColor: COLORS.surface1, borderRadius: RADIUS.lg, paddingVertical: 16, marginBottom: 16, borderWidth: 1, borderColor: COLORS.border },
 
-  metaLine: { color: "#CCC", fontSize: 14, marginBottom: 4 },
-  metaKey: { color: "#888" },
+  metaLine: { fontFamily: FONTS.body, color: COLORS.text, fontSize: 14, marginBottom: 4 },
+  metaKey: { fontFamily: FONTS.mono, color: COLORS.textMuted, fontSize: 12 },
 
-  card: { backgroundColor: "#1A1A2E", borderRadius: 14, padding: 16, marginTop: 16, borderWidth: 1, borderColor: "#2A2A4A" },
-  cardTitle: { color: "#FFF", fontSize: 16, fontWeight: "bold", marginBottom: 12 },
-  loading: { color: "#666", fontSize: 14, paddingVertical: 12 },
-  empty: { color: "#666", fontSize: 14, lineHeight: 20, paddingVertical: 12 },
+  card: { backgroundColor: COLORS.surface1, borderRadius: RADIUS.lg, padding: 16, marginTop: 16, borderWidth: 1, borderColor: COLORS.border },
+  cardTitle: { fontFamily: FONTS.heading, color: COLORS.text, fontSize: 17, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.3 },
+  loading: { fontFamily: FONTS.body, color: COLORS.textDim, fontSize: 14, paddingVertical: 12 },
+  empty: { fontFamily: FONTS.body, color: COLORS.textDim, fontSize: 14, lineHeight: 20, paddingVertical: 12 },
   dateRow: { flexDirection: "row", justifyContent: "space-between", paddingLeft: 44, paddingRight: 12, marginTop: 2 },
-  dateLabel: { color: "#666", fontSize: 11 },
+  dateLabel: { fontFamily: FONTS.mono, color: COLORS.textDim, fontSize: 10 },
   metricRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 14 },
-  metricChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, borderWidth: 1, borderColor: "#2A2A4A" },
-  metricChipText: { color: "#888", fontSize: 12, fontWeight: "600" },
+  metricChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: RADIUS.sm, borderWidth: 1, borderColor: COLORS.border },
+  metricChipText: { fontFamily: FONTS.mono, color: COLORS.textMuted, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.3 },
 
-  prRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderTopWidth: 1, borderColor: "#2A2A4A" },
-  prLabel: { color: "#AAA", fontSize: 14 },
-  prValue: { color: "#FFF", fontSize: 14, fontWeight: "bold" },
+  prRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderTopWidth: 1, borderColor: COLORS.border },
+  prLabel: { fontFamily: FONTS.body, color: COLORS.textMuted, fontSize: 14 },
+  prValue: { fontFamily: FONTS.monoBold, color: COLORS.text, fontSize: 14 },
 
-  historyRow: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 12, borderBottomWidth: 1, borderColor: "#1A1A2E" },
+  historyRow: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 12, borderBottomWidth: 1, borderColor: COLORS.border },
   historyDot: { width: 8, height: 8, borderRadius: 4, marginTop: 6, marginRight: 12 },
-  historyDate: { color: "#FFF", fontSize: 14, fontWeight: "600", marginBottom: 4 },
-  historySets: { color: "#888", fontSize: 13, lineHeight: 19 },
+  historyDate: { fontFamily: FONTS.bodySemiBold, color: COLORS.text, fontSize: 14, marginBottom: 4 },
+  historySets: { fontFamily: FONTS.mono, color: COLORS.textMuted, fontSize: 12, lineHeight: 19 },
 
-  metaRow: { flexDirection: "row", gap: 32, padding: 16, backgroundColor: "#1A1A2E", borderRadius: 12 },
-  detailLabel: { color: "#888", fontSize: 11, letterSpacing: 1.5, fontWeight: "700", marginBottom: 8 },
-  metaValue: { color: "#FFF", fontSize: 15, fontWeight: "bold", marginTop: 4 },
+  metaRow: { flexDirection: "row", gap: 32, padding: 16, backgroundColor: COLORS.surface1, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border },
+  detailLabel: { fontFamily: FONTS.mono, color: COLORS.textMuted, fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 },
+  metaValue: { fontFamily: FONTS.bodyBold, color: COLORS.text, fontSize: 15, marginTop: 4 },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
   stepRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: 12 },
-  stepNum: { width: 24, height: 24, borderRadius: 12, alignItems: "center", justifyContent: "center", marginRight: 10, marginTop: 1 },
-  stepNumText: { color: "#FFF", fontSize: 12, fontWeight: "bold" },
-  stepText: { color: "#CCC", fontSize: 14, flex: 1, lineHeight: 20 },
+  stepNum: { width: 24, height: 24, borderRadius: RADIUS.sm, alignItems: "center", justifyContent: "center", marginRight: 10, marginTop: 1 },
+  stepNumText: { fontFamily: FONTS.monoBold, color: COLORS.onPrimary, fontSize: 12 },
+  stepText: { fontFamily: FONTS.body, color: COLORS.text, fontSize: 14, flex: 1, lineHeight: 20 },
 
-  addConfirmBtn: { marginTop: 12, borderRadius: 14, overflow: "hidden" },
+  addConfirmBtn: { marginTop: 12, borderRadius: RADIUS.md, overflow: "hidden" },
   addConfirmGradient: { padding: 16, alignItems: "center" },
-  addConfirmText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },
+  addConfirmText: { fontFamily: FONTS.display, color: COLORS.onPrimary, fontSize: 18, textTransform: "uppercase", letterSpacing: 0.5 },
 });

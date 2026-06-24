@@ -16,6 +16,9 @@ import {
   MUSCLE_GROUPS,
   MuscleGroup,
 } from "../constants/exercises";
+import Animated from "react-native-reanimated";
+import { enter } from "../constants/motion";
+import { COLORS, FONTS, RADIUS, SPACING } from "../constants/theme";
 import { useExercises } from "../contexts/ExercisesProvider";
 import { ExerciseDetail } from "./ExerciseDetail";
 import { MuscleChip } from "./MuscleChip";
@@ -23,7 +26,16 @@ import { MuscleChip } from "./MuscleChip";
 // ─── Exercise Picker ──────────────────────────────────────────────────────────
 // A full-screen exercise library with search + filters. Calls onSelect with the
 // chosen exercise. Reused by both the workout logger and the routine editor.
-export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) => void; onClose: () => void }) => {
+export const ExercisePicker = ({
+  onSelect,
+  onClose,
+  browse = false,
+}: {
+  onSelect?: (e: Exercise) => void;
+  onClose: () => void;
+  // Browse mode (Explore): just view the library, no selecting/adding.
+  browse?: boolean;
+}) => {
   const [search, setSearch] = useState("");
   const [muscle, setMuscle] = useState<MuscleGroup | "All">("All");
   const [equipment, setEquipment] = useState<Equipment | "All">("All");
@@ -48,9 +60,9 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
       {/* Header */}
       <View style={styles.pickerHeader}>
         <TouchableOpacity onPress={onClose}>
-          <Text style={styles.pickerCancel}>Cancel</Text>
+          <Text style={styles.pickerCancel}>{browse ? "Done" : "Cancel"}</Text>
         </TouchableOpacity>
-        <Text style={styles.pickerTitle}>Exercise Library</Text>
+        <Text style={styles.pickerTitle}>{browse ? "Exercises" : "Exercise Library"}</Text>
         <Text style={styles.pickerCount}>{filtered.length}</Text>
       </View>
 
@@ -58,7 +70,7 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
       <TextInput
         style={styles.searchInput}
         placeholder="Search exercises..."
-        placeholderTextColor="#555"
+        placeholderTextColor={COLORS.textDim}
         value={search}
         onChangeText={setSearch}
       />
@@ -94,8 +106,9 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
         data={filtered}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
+          <Animated.View entering={enter()}>
           <TouchableOpacity style={styles.exerciseRow} onPress={() => setDetail(item)}>
-            <View style={[styles.colorBar, { backgroundColor: MUSCLE_COLORS[item.primaryMuscle] || "#6C63FF" }]} />
+            <View style={[styles.colorBar, { backgroundColor: MUSCLE_COLORS[item.primaryMuscle] || COLORS.primary }]} />
             <View style={{ flex: 1, paddingLeft: 12 }}>
               <Text style={styles.exerciseName}>{item.name}</Text>
               <View style={styles.chipRow}>
@@ -106,8 +119,9 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
                 </View>
               </View>
             </View>
-            <View style={[styles.diffDot, { backgroundColor: item.difficulty === "Beginner" ? "#00C9A7" : item.difficulty === "Intermediate" ? "#FF9F43" : "#FF6B6B" }]} />
+            <View style={[styles.diffDot, { backgroundColor: item.difficulty === "Beginner" ? COLORS.primary : item.difficulty === "Intermediate" ? COLORS.warning : COLORS.error }]} />
           </TouchableOpacity>
+          </Animated.View>
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={
@@ -159,7 +173,8 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
             {detail && (
               <ExerciseDetail
                 exercise={detail}
-                onAdd={() => { onSelect(detail); setDetail(null); }}
+                browseMode={browse}
+                onAdd={() => { onSelect?.(detail); setDetail(null); }}
                 onClose={() => setDetail(null)}
               />
             )}
@@ -171,35 +186,35 @@ export const ExercisePicker = ({ onSelect, onClose }: { onSelect: (e: Exercise) 
 };
 
 const styles = StyleSheet.create({
-  pickerContainer: { flex: 1, backgroundColor: "#0D0D0D" },
-  pickerHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 20, paddingTop: 60, borderBottomWidth: 1, borderColor: "#1A1A2E" },
-  pickerCancel: { color: "#6C63FF", fontSize: 16 },
-  pickerTitle: { color: "#FFF", fontSize: 17, fontWeight: "bold" },
-  pickerCount: { color: "#888", fontSize: 14 },
-  searchInput: { margin: 16, backgroundColor: "#1A1A2E", color: "#FFF", borderRadius: 12, padding: 14, fontSize: 15, borderWidth: 1, borderColor: "#2A2A4A" },
-  filterRow: { flexDirection: "row", paddingHorizontal: 16, gap: 8, marginBottom: 8, alignItems: "center" },
-  filterBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: "#2A2A4A", backgroundColor: "#1A1A2E" },
-  filterBtnActive: { borderColor: "#6C63FF", backgroundColor: "#6C63FF22" },
-  filterBtnText: { color: "#888", fontSize: 13 },
-  filterBtnTextActive: { color: "#6C63FF" },
-  clearFilter: { color: "#FF6B6B", fontSize: 13, fontWeight: "600" },
+  pickerContainer: { flex: 1, backgroundColor: COLORS.base },
+  pickerHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: SPACING.lg, paddingTop: 60, borderBottomWidth: 1, borderColor: COLORS.border },
+  pickerCancel: { fontFamily: FONTS.bodySemiBold, color: COLORS.primary, fontSize: 16 },
+  pickerTitle: { fontFamily: FONTS.heading, color: COLORS.text, fontSize: 18, textTransform: "uppercase", letterSpacing: 0.4 },
+  pickerCount: { fontFamily: FONTS.mono, color: COLORS.textMuted, fontSize: 14 },
+  searchInput: { margin: SPACING.md, backgroundColor: COLORS.surface1, color: COLORS.text, borderRadius: RADIUS.md, padding: 14, fontSize: 15, fontFamily: FONTS.body, borderWidth: 1, borderColor: COLORS.border },
+  filterRow: { flexDirection: "row", paddingHorizontal: SPACING.md, gap: 8, marginBottom: 8, alignItems: "center" },
+  filterBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface1 },
+  filterBtnActive: { borderColor: COLORS.primary, backgroundColor: "rgba(204, 255, 0, 0.12)" },
+  filterBtnText: { fontFamily: FONTS.mono, color: COLORS.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.5 },
+  filterBtnTextActive: { color: COLORS.primary },
+  clearFilter: { fontFamily: FONTS.bodySemiBold, color: COLORS.error, fontSize: 13 },
   exerciseRow: { flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingLeft: 0 },
-  colorBar: { width: 4, alignSelf: "stretch", borderRadius: 2, marginLeft: 16 },
-  exerciseName: { color: "#FFF", fontSize: 15, fontWeight: "600", marginBottom: 6 },
+  colorBar: { width: 4, alignSelf: "stretch", borderRadius: RADIUS.sm, marginLeft: SPACING.md },
+  exerciseName: { fontFamily: FONTS.bodySemiBold, color: COLORS.text, fontSize: 15, marginBottom: 6 },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
-  equipChip: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, backgroundColor: "#2A2A4A" },
-  equipChipText: { fontSize: 11, color: "#888" },
-  diffDot: { width: 8, height: 8, borderRadius: 4, marginRight: 16 },
-  separator: { height: 1, backgroundColor: "#1A1A2E", marginLeft: 20 },
+  equipChip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.sm, backgroundColor: COLORS.surface3 },
+  equipChipText: { fontFamily: FONTS.mono, fontSize: 10, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: 0.5 },
+  diffDot: { width: 8, height: 8, borderRadius: 4, marginRight: SPACING.md },
+  separator: { height: 1, backgroundColor: COLORS.border, marginLeft: SPACING.lg },
   emptyBox: { padding: 32, alignItems: "center" },
-  emptyText: { color: "#666", fontSize: 14, textAlign: "center", lineHeight: 20 },
+  emptyText: { fontFamily: FONTS.body, color: COLORS.textDim, fontSize: 14, textAlign: "center", lineHeight: 20 },
   overlay: { flex: 1, backgroundColor: "#000000AA", justifyContent: "flex-end" },
-  sheet: { backgroundColor: "#1A1A2E", borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 48, maxHeight: "80%" },
-  sheetTitle: { color: "#FFF", fontSize: 17, fontWeight: "bold", marginBottom: 16 },
-  sheetOption: { flexDirection: "row", alignItems: "center", paddingVertical: 13, borderBottomWidth: 1, borderColor: "#2A2A4A" },
-  sheetOptionText: { color: "#888", fontSize: 15 },
-  sheetOptionActive: { color: "#6C63FF", fontWeight: "bold" },
+  sheet: { backgroundColor: COLORS.surface2, borderTopLeftRadius: RADIUS.lg, borderTopRightRadius: RADIUS.lg, padding: 24, paddingBottom: 48, maxHeight: "80%", borderTopWidth: 1, borderColor: COLORS.borderStrong },
+  sheetTitle: { fontFamily: FONTS.heading, color: COLORS.text, fontSize: 18, marginBottom: 16, textTransform: "uppercase", letterSpacing: 0.4 },
+  sheetOption: { flexDirection: "row", alignItems: "center", paddingVertical: 13, borderBottomWidth: 1, borderColor: COLORS.border },
+  sheetOptionText: { fontFamily: FONTS.body, color: COLORS.textMuted, fontSize: 15 },
+  sheetOptionActive: { fontFamily: FONTS.bodySemiBold, color: COLORS.primary },
   filterDot: { width: 10, height: 10, borderRadius: 5, marginRight: 10 },
   detailOverlay: { flex: 1, backgroundColor: "#000000BB", justifyContent: "flex-end" },
-  detailSheet: { backgroundColor: "#0D0D0D", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 16, height: "92%" },
+  detailSheet: { backgroundColor: COLORS.base, borderTopLeftRadius: RADIUS.lg, borderTopRightRadius: RADIUS.lg, padding: 24, paddingBottom: 16, height: "92%" },
 });

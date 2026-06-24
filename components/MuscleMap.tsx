@@ -2,12 +2,13 @@ import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Body, { ExtendedBodyPart, Slug } from "react-native-body-highlighter";
 import { MuscleGroup } from "../constants/exercises";
+import { COLORS, FONTS } from "../constants/theme";
 
 // Highlight colours by intensity: [tertiary, secondary, primary] → intensity 1/2/3
-const INTENSITY_COLORS = ["#3A3A5C", "#4ECDC4", "#6C63FF"];
-const PRIMARY_COLOR = "#6C63FF";
-const SECONDARY_COLOR = "#4ECDC4";
-const TERTIARY_COLOR = "#3A3A5C";
+const PRIMARY_COLOR = COLORS.primary;
+const SECONDARY_COLOR = COLORS.secondary;
+const TERTIARY_COLOR = "#3A3A3C";
+const INTENSITY_COLORS = [TERTIARY_COLOR, SECONDARY_COLOR, PRIMARY_COLOR];
 
 // Map our muscle-group names onto the slugs the body-highlighter understands.
 // A few of ours have no exact match, so we use the closest anatomical region.
@@ -93,10 +94,10 @@ export const MuscleMap = ({ primary, secondary = [], tertiary = [] }: Props) => 
 const styles = StyleSheet.create({
   bodies: { flexDirection: "row", justifyContent: "space-around", alignItems: "center" },
   bodyCol: { alignItems: "center" },
-  bodyLabel: { color: "#888", fontSize: 12, fontWeight: "600", marginTop: 4 },
+  bodyLabel: { fontFamily: FONTS.mono, color: COLORS.textMuted, fontSize: 11, marginTop: 4, textTransform: "uppercase", letterSpacing: 0.5 },
   legend: { flexDirection: "row", justifyContent: "center", gap: 18, marginTop: 12 },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
-  legendText: { color: "#AAA", fontSize: 12 },
-  cardioNote: { color: "#888", fontSize: 14, fontStyle: "italic" },
+  legendText: { fontFamily: FONTS.mono, color: COLORS.textMuted, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.3 },
+  cardioNote: { fontFamily: FONTS.body, color: COLORS.textMuted, fontSize: 14, fontStyle: "italic" },
 });

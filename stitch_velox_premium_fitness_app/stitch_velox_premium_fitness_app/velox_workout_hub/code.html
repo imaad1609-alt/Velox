@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>VELOX | Workout Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Archivo+Narrow:wght@600;700&amp;family=JetBrains+Mono:wght@600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-glow {
+            box-shadow: 0 0 15px 2px rgba(204, 255, 0, 0.15);
+        }
+        .obsidian-gradient {
+            background: linear-gradient(180deg, #131313 0%, #0A0A0A 100%);
+        }
+        /* Custom scrollbar for stealth look */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0A0A0A; }
+        ::-webkit-scrollbar-thumb { background: #2C2C2E; border-radius: 10px; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#131313",
+                        "primary-fixed": "#c3f400",
+                        "surface-container": "#201f1f",
+                        "surface-variant": "#353534",
+                        "on-secondary": "#002388",
+                        "on-surface-variant": "#c4c9ac",
+                        "on-background": "#e5e2e1",
+                        "inverse-surface": "#e5e2e1",
+                        "secondary": "#b8c3ff",
+                        "primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#0035be",
+                        "surface-container-low": "#1c1b1b",
+                        "on-primary-container": "#556d00",
+                        "inverse-on-surface": "#313030",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "secondary-fixed-dim": "#b8c3ff",
+                        "primary-container": "#c3f400",
+                        "on-primary": "#283500",
+                        "background": "#0A0A0A",
+                        "tertiary-container": "#e2e2e2",
+                        "surface-container-high": "#2a2a2a",
+                        "on-tertiary": "#2f3131",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "surface-bright": "#393939",
+                        "surface-container-highest": "#353534",
+                        "on-secondary-fixed": "#001356",
+                        "surface-tint": "#abd600",
+                        "on-secondary-container": "#c6ceff",
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "error-container": "#93000a",
+                        "secondary-container": "#0043eb",
+                        "primary-fixed-dim": "#abd600",
+                        "on-error": "#690005",
+                        "error": "#ffb4ab",
+                        "inverse-primary": "#506600",
+                        "surface-dim": "#131313",
+                        "on-tertiary-container": "#636565",
+                        "on-primary-fixed": "#161e00",
+                        "outline-variant": "#2C2C2E",
+                        "tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#3c4d00",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-lowest": "#0e0e0e",
+                        "secondary-fixed": "#dde1ff",
+                        "outline": "#8e9379",
+                        "on-surface": "#e5e2e1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "20px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg-mobile": ["Archivo Narrow"],
+                        "label-caps": ["JetBrains Mono"],
+                        "headline-md": ["Archivo Narrow"],
+                        "body-lg": ["Inter"],
+                        "data-heavy": ["Archivo Narrow"],
+                        "display-lg": ["Archivo Narrow"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "display-lg-mobile": ["40px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "28px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "26px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "data-heavy": ["32px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline-variant flex justify-between items-center px-margin-mobile h-14">
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary-fixed">
+<img class="w-full h-full object-cover" data-alt="A close-up, high-contrast portrait of a professional athlete with intense focus, lit by dramatic rim lighting against a dark, industrial gym background. The style is cinematic and gritty, emphasizing texture and determination in a high-performance fitness context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCo1ndZRp_mOvwKlb5UkHF4dGrOLwqgchZKCZZ_PNw4OL4cZV1Ky8LgZGLaQayJuDFZCxhItasRfKUU33tKI1--BcnGKxMyNXPjPFImDFnO4LvaucPtEgnHj6D4YWA92sdaCMfIvQFQr94oQsNCRAdaspNA-8nOPPdIIqfD0qye4dKPNZmHrcxir_6O8wzF5pameh5mVDZO9sMfivQX8lrQHagDR4-HF4E1aYIIYk-iXbqgX-E2-72zSLEmirnEvZE_CZP9cLziTWLd"/>
+</div>
+</div>
+<h1 class="font-data-heavy text-data-heavy text-primary-fixed tracking-tighter">VELOX</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-highest transition-colors active:scale-95">
+<span class="material-symbols-outlined text-primary-fixed">monitoring</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 mt-14 mb-20 px-margin-mobile pt-lg overflow-y-auto">
+<!-- Primary Action Area -->
+<section class="mb-xl">
+<button class="w-full h-20 bg-primary-fixed text-on-primary font-headline-md text-headline-md-mobile flex items-center justify-center gap-sm active:scale-95 transition-transform rounded-sm shadow-[0_0_20px_rgba(195,244,0,0.2)]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'wght' 700;">bolt</span>
+                START EMPTY WORKOUT
+            </button>
+</section>
+<!-- Section Header -->
+<div class="flex justify-between items-end mb-md">
+<h2 class="font-headline-md text-headline-md-mobile text-on-surface tracking-wider">MY ROUTINES</h2>
+<button class="flex items-center gap-xs text-primary-fixed font-label-caps text-label-caps hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-sm">add</span>
+                NEW ROUTINE
+            </button>
+</div>
+<!-- Routine List -->
+<div class="flex flex-col gap-md">
+<!-- Routine Card 1 -->
+<div class="bg-[#121212] border border-outline-variant relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-fixed"></div>
+<div class="p-md">
+<div class="flex justify-between items-start mb-sm">
+<h3 class="font-headline-md text-headline-md-mobile text-primary tracking-tight">LEG DAY ALPHA</h3>
+<span class="font-label-caps text-label-caps text-on-surface-variant bg-surface-container-highest px-xs py-[2px]">6 EXERCISES</span>
+</div>
+<p class="text-on-surface-variant font-body-md text-sm mb-lg flex gap-xs items-center">
+<span class="font-label-caps text-[10px] opacity-50 uppercase">Preview:</span>
+                        Back Squat, Leg Press, Calves
+                    </p>
+<button class="w-full py-sm border border-primary-fixed/30 text-primary-fixed font-label-caps text-label-caps hover:bg-primary-fixed hover:text-on-primary transition-all active:scale-95">
+                        START ROUTINE
+                    </button>
+</div>
+</div>
+<!-- Routine Card 2 -->
+<div class="bg-[#121212] border border-outline-variant relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-fixed"></div>
+<div class="p-md">
+<div class="flex justify-between items-start mb-sm">
+<h3 class="font-headline-md text-headline-md-mobile text-primary tracking-tight">PULL BETA (PR FOCUS)</h3>
+<span class="font-label-caps text-label-caps text-on-surface-variant bg-surface-container-highest px-xs py-[2px]">5 EXERCISES</span>
+</div>
+<p class="text-on-surface-variant font-body-md text-sm mb-lg flex gap-xs items-center">
+<span class="font-label-caps text-[10px] opacity-50 uppercase">Preview:</span>
+                        Deadlift, Pull-ups, Rows
+                    </p>
+<button class="w-full py-sm border border-primary-fixed/30 text-primary-fixed font-label-caps text-label-caps hover:bg-primary-fixed hover:text-on-primary transition-all active:scale-95">
+                        START ROUTINE
+                    </button>
+</div>
+</div>
+<!-- Routine Card 3 -->
+<div class="bg-[#121212] border border-outline-variant relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-fixed"></div>
+<div class="p-md">
+<div class="flex justify-between items-start mb-sm">
+<h3 class="font-headline-md text-headline-md-mobile text-primary tracking-tight">UPPER BODY HYPERTROPHY</h3>
+<span class="font-label-caps text-label-caps text-on-surface-variant bg-surface-container-highest px-xs py-[2px]">8 EXERCISES</span>
+</div>
+<p class="text-on-surface-variant font-body-md text-sm mb-lg flex gap-xs items-center">
+<span class="font-label-caps text-[10px] opacity-50 uppercase">Preview:</span>
+                        Bench Press, Incline Fly, Dips
+                    </p>
+<button class="w-full py-sm border border-primary-fixed/30 text-primary-fixed font-label-caps text-label-caps hover:bg-primary-fixed hover:text-on-primary transition-all active:scale-95">
+                        START ROUTINE
+                    </button>
+</div>
+</div>
+<!-- Atmospheric Card (Bento-ish) -->
+<div class="mt-lg grid grid-cols-2 gap-md">
+<div class="bg-surface-container-low border border-outline-variant p-md flex flex-col justify-between h-32">
+<span class="material-symbols-outlined text-primary-fixed opacity-50">history</span>
+<div>
+<div class="font-label-caps text-label-caps text-on-surface-variant uppercase">Last Session</div>
+<div class="font-headline-md text-sm text-primary">2 days ago</div>
+</div>
+</div>
+<div class="bg-surface-container-low border border-outline-variant p-md flex flex-col justify-between h-32">
+<span class="material-symbols-outlined text-primary-fixed opacity-50">military_tech</span>
+<div>
+<div class="font-label-caps text-label-caps text-on-surface-variant uppercase">Current Streak</div>
+<div class="font-headline-md text-sm text-primary">12 Days</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface-container border-t border-outline-variant flex justify-around items-center px-xs pb-safe h-[72px]">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-label-caps text-[10px]">Home</span>
+</a>
+<!-- Workout (Active) -->
+<a class="flex flex-col items-center justify-center text-primary-fixed font-bold active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">fitness_center</span>
+<span class="font-label-caps text-[10px]">Workout</span>
+<div class="w-1 h-1 bg-primary-fixed rounded-full mt-1"></div>
+</a>
+<!-- Nutrition -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1">nutrition</span>
+<span class="font-label-caps text-[10px]">Nutrition</span>
+</a>
+<!-- Stats/Settings -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1">settings</span>
+<span class="font-label-caps text-[10px]">Settings</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.classList.add('opacity-80');
+            });
+            button.addEventListener('mouseup', () => {
+                button.classList.remove('opacity-80');
+            });
+        });
+
+        // Subtle parallax or scroll effect for routine cards
+        const cards = document.querySelectorAll('.group');
+        window.addEventListener('scroll', () => {
+            const speed = 0.05;
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    const shift = (rect.top - window.innerHeight / 2) * speed;
+                    // Potential for subtle bg shift if images were used
+                }
+            });
+        });
+    </script>
+</body></html>

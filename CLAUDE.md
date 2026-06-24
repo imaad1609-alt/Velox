@@ -39,7 +39,7 @@ No test runner is configured. `npm run reset-project` is create-expo-app scaffol
 `app/_layout.tsx` is the root. It subscribes to Firebase `onAuthStateChanged` and renders `<Login>` until a user exists; only then mounts the `<Tabs>` navigator wrapped in `ExercisesProvider` → `WorkoutProvider`. Tab screens are flat files in `/app`: `index` (Dashboard), `workout`, `nutrition`, `profile`. `login` is registered with `href: null` to stay out of the tab bar.
 
 ### State: two app-wide contexts (mounted above the tabs)
-- **`WorkoutContext`** (`contexts/WorkoutContext.tsx`) holds the single *in-progress* workout — exercises, sets, a per-second elapsed timer, and minimized/expanded state. It lives above the navigator so an active workout **survives tab switches**; `MiniWorkoutBar` is the persistent floating control rendered alongside the tabs. This state is ephemeral and in-memory — a workout is only persisted to Firestore on finish.
+- **`WorkoutContext`** (`contexts/WorkoutContext.tsx`) holds the single *in-progress* workout — exercises, sets, a per-second elapsed timer, and minimized/expanded state. It lives above the navigator so an active workout **survives tab switches**; `MiniWorkoutBar` is the persistent floating control rendered alongside the tabs. The in-progress workout is snapshotted to **AsyncStorage** (`velox.activeWorkout`) on every change and restored on launch, so it also survives an app restart (the timer resumes from the persisted absolute `startTime`). It is only persisted to **Firestore** on finish.
 - **`ExercisesProvider`** (`contexts/ExercisesProvider.tsx`) supplies the exercise catalog via `useExercises()`.
 
 ### Data layer — `/utils` (the only place that talks to Firestore)
@@ -53,7 +53,7 @@ Screens and components **never** call Firestore directly. Per-user data is names
 `constants/exercises.ts` is the source of truth: the `Exercise` type, the `MuscleGroup`/`Equipment`/`Difficulty` unions, the **195 bundled exercises**, and shared `MUSCLE_COLORS`. Reusable UI in `/components` — `ExercisePicker`, `ExerciseDetail`, `RoutineEditor`, `MiniWorkoutBar`, `MuscleMap`/`MuscleChip` (via `react-native-body-highlighter`), `LineChart`. Styling is inline `StyleSheet`, dark theme (background `#0D0D0D`, accent `#6C63FF`).
 
 ### Firebase config
-`firebaseConfig.js` exports `auth` and `db`. Auth uses **`inMemoryPersistence`** — sessions do **not** survive an app restart (user re-logs in each launch). The web `apiKey` is a public client identifier (safe to commit); `serviceAccountKey.json` is the admin credential and is gitignored.
+`firebaseConfig.js` exports `auth` and `db`. Auth uses **durable persistence** — `getReactNativePersistence(AsyncStorage)` on native and `browserLocalPersistence` on web — so a logged-in session **survives an app restart** (no re-login each launch); `app/_layout.tsx`'s `onAuthStateChanged` restores it on boot. The web `apiKey` is a public client identifier (safe to commit); `serviceAccountKey.json` is the admin credential and is gitignored.
 
 ## Coding conventions
 

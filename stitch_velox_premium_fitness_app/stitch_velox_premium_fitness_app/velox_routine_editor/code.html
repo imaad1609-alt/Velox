@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Velox Routine Editor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&amp;family=Inter:wght@400;600&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#e2e2e2",
+                    "on-secondary-fixed": "#001356",
+                    "primary-container": "#c3f400",
+                    "primary-fixed-dim": "#abd600",
+                    "on-secondary-fixed-variant": "#0035be",
+                    "surface-container-low": "#1c1b1b",
+                    "outline-variant": "#444933",
+                    "inverse-on-surface": "#313030",
+                    "secondary-fixed-dim": "#b8c3ff",
+                    "primary": "#ffffff",
+                    "surface-container-highest": "#353534",
+                    "surface-container": "#201f1f",
+                    "surface-dim": "#131313",
+                    "primary-fixed": "#c3f400",
+                    "on-surface": "#e5e2e1",
+                    "on-secondary-container": "#c6ceff",
+                    "error-container": "#93000a",
+                    "surface-bright": "#393939",
+                    "on-primary": "#283500",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "on-background": "#e5e2e1",
+                    "tertiary-fixed": "#e2e2e2",
+                    "inverse-primary": "#506600",
+                    "error": "#ffb4ab",
+                    "background": "#131313",
+                    "on-surface-variant": "#c4c9ac",
+                    "surface-variant": "#353534",
+                    "secondary-container": "#0043eb",
+                    "secondary": "#b8c3ff",
+                    "on-primary-fixed": "#161e00",
+                    "on-secondary": "#002388",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "tertiary": "#ffffff",
+                    "on-error": "#690005",
+                    "secondary-fixed": "#dde1ff",
+                    "surface-tint": "#abd600",
+                    "on-tertiary": "#2f3131",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "inverse-surface": "#e5e2e1",
+                    "on-tertiary-container": "#636565",
+                    "surface": "#131313",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-lowest": "#0e0e0e",
+                    "outline": "#8e9379",
+                    "on-primary-fixed-variant": "#3c4d00",
+                    "on-primary-container": "#556d00",
+                    "surface-container-high": "#2a2a2a",
+                    "electric-lime": "#CCFF00",
+                    "obsidian": "#0A0A0A"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "sm": "8px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "md": "16px",
+                    "xl": "32px",
+                    "margin-mobile": "20px"
+            },
+            "fontFamily": {
+                    "label-caps": ["JetBrains Mono"],
+                    "data-heavy": ["Archivo Narrow"],
+                    "headline-md": ["Archivo Narrow"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "display-lg-mobile": ["Archivo Narrow"],
+                    "display-lg": ["Archivo Narrow"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "data-heavy": ["32px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "28px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "26px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                    "display-lg-mobile": ["40px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0A0A0A;
+            color: #e5e2e1;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        .glow-active:active {
+            box-shadow: 0 0 12px 2px rgba(204, 255, 0, 0.2);
+        }
+        /* Custom scrollbar for technical look */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0A0A0A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2C2C2E;
+            border-radius: 2px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-body-md overflow-hidden">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full bg-background z-50 flex items-center justify-between px-gutter h-14 border-b border-outline-variant">
+<button class="flex items-center justify-center w-10 h-10 hover:bg-surface-container-highest transition-colors active:scale-95 duration-100 rounded-full">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-primary">Edit Routine</h1>
+<button class="flex items-center justify-center w-10 h-10 hover:bg-surface-container-highest transition-colors active:scale-95 duration-100 rounded-full">
+<span class="material-symbols-outlined text-primary">more_vert</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-14 pb-32 h-screen overflow-y-auto px-margin-mobile">
+<!-- Routine Identity Section -->
+<section class="mt-lg mb-xl">
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-sm uppercase tracking-widest">Routine Name</label>
+<input aria-label="Routine Name" class="w-full bg-obsidian border border-outline-variant px-md py-lg font-headline-md text-headline-md text-primary focus:outline-none focus:border-primary-fixed focus:ring-1 focus:ring-primary-fixed transition-all rounded" placeholder="Leg Day Alpha" type="text"/>
+</section>
+<!-- Exercise List Cluster -->
+<section class="space-y-md">
+<div class="flex items-center justify-between mb-sm">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant">EXERCISES (3)</h2>
+<span class="font-label-caps text-label-caps text-primary-fixed">MANAGE</span>
+</div>
+<!-- Exercise Row: Back Squat -->
+<div class="flex items-center bg-surface-container border border-outline-variant rounded-lg p-md group hover:border-outline transition-colors relative">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-fixed rounded-l-lg"></div>
+<div class="flex items-center mr-md drag-handle cursor-grab active:cursor-grabbing text-on-surface-variant">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="flex-grow">
+<h3 class="font-headline-md text-primary text-lg">Back Squat</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant">4 SETS <span class="mx-1">•</span> <span class="text-primary-fixed">LEGACY GAINS</span></p>
+</div>
+<button class="flex items-center justify-center w-10 h-10 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-all">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Exercise Row: Leg Press -->
+<div class="flex items-center bg-surface-container border border-outline-variant rounded-lg p-md group hover:border-outline transition-colors relative">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-fixed rounded-l-lg"></div>
+<div class="flex items-center mr-md drag-handle cursor-grab text-on-surface-variant">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="flex-grow">
+<h3 class="font-headline-md text-primary text-lg">Leg Press</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant">3 SETS <span class="mx-1">•</span> <span class="text-primary-fixed">ISOLATION</span></p>
+</div>
+<button class="flex items-center justify-center w-10 h-10 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-all">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Exercise Row: Leg Extension -->
+<div class="flex items-center bg-surface-container border border-outline-variant rounded-lg p-md group hover:border-outline transition-colors relative">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-fixed rounded-l-lg"></div>
+<div class="flex items-center mr-md drag-handle cursor-grab text-on-surface-variant">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="flex-grow">
+<h3 class="font-headline-md text-primary text-lg">Leg Extension</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant">3 SETS <span class="mx-1">•</span> <span class="text-primary-fixed">BURN</span></p>
+</div>
+<button class="flex items-center justify-center w-10 h-10 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-all">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Add Exercise Button (Secondary Action) -->
+<button class="w-full flex items-center justify-center py-lg border-2 border-dashed border-outline-variant rounded hover:border-primary-fixed hover:bg-surface-container-high transition-all group mt-lg active:scale-[0.98]">
+<span class="material-symbols-outlined text-primary-fixed mr-sm group-hover:scale-110 transition-transform">add_circle</span>
+<span class="font-label-caps text-label-caps text-primary uppercase">Add Exercise</span>
+</button>
+</section>
+<!-- Technical Metadata Card (Asymmetric Bento Style) -->
+<section class="mt-xl grid grid-cols-2 gap-md">
+<div class="col-span-2 bg-surface-container-low border border-outline-variant p-md rounded flex items-center">
+<div class="mr-md text-primary-fixed">
+<span class="material-symbols-outlined text-4xl">timer</span>
+</div>
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase">Est. Duration</p>
+<p class="font-data-heavy text-data-heavy text-primary">65<span class="text-lg ml-xs">MIN</span></p>
+</div>
+</div>
+<div class="bg-surface-container-low border border-outline-variant p-md rounded">
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase">Volume Load</p>
+<p class="font-data-heavy text-data-heavy text-primary">12.4<span class="text-lg ml-xs">K</span></p>
+</div>
+<div class="bg-surface-container-low border border-outline-variant p-md rounded">
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase">Intensity</p>
+<p class="font-data-heavy text-data-heavy text-secondary">RPE 8.5</p>
+</div>
+</section>
+<!-- Spacer for footer -->
+<div class="h-10"></div>
+</main>
+<!-- Bottom Navigation Shell (Action Only) -->
+<footer class="fixed bottom-0 left-0 w-full z-50 bg-surface-container border-t border-outline-variant px-lg py-sm pb-margin-mobile flex flex-col items-center shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
+<button class="w-full h-14 bg-primary-fixed text-on-primary-fixed font-headline-md text-headline-md flex items-center justify-center active:scale-95 duration-200 transition-all rounded glow-active uppercase tracking-tighter">
+<span class="material-symbols-outlined mr-sm" style="font-variation-settings: 'FILL' 1;">save</span>
+            Save Routine
+        </button>
+</footer>
+<!-- Micro-interaction Script -->
+<script>
+        // Simple drag feedback simulation
+        const rows = document.querySelectorAll('.drag-handle');
+        rows.forEach(handle => {
+            handle.addEventListener('mousedown', () => {
+                handle.closest('div.flex').classList.add('opacity-50', 'scale-[0.99]', 'bg-surface-container-highest');
+            });
+            handle.addEventListener('mouseup', () => {
+                handle.closest('div.flex').classList.remove('opacity-50', 'scale-[0.99]', 'bg-surface-container-highest');
+            });
+        });
+
+        // Delete button interaction
+        const deleteButtons = document.querySelectorAll('.material-symbols-outlined');
+        deleteButtons.forEach(btn => {
+            if(btn.innerText === 'close') {
+                btn.parentElement.addEventListener('click', function() {
+                    const row = this.closest('.flex.items-center.bg-surface-container');
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(20px)';
+                    setTimeout(() => row.remove(), 200);
+                });
+            }
+        });
+    </script>
+</body></html>

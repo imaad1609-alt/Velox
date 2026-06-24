@@ -11,6 +11,22 @@ export type Equipment =
 
 export type Difficulty = "Beginner" | "Intermediate" | "Advanced";
 
+// How an exercise's sets are logged. Defaults to weight×reps when unset.
+export type TrackingType =
+  | "weight_reps"
+  | "bodyweight_reps"
+  | "weighted_bodyweight"
+  | "duration"
+  | "distance";
+
+export const TRACKING_TYPES: { key: TrackingType; label: string }[] = [
+  { key: "weight_reps", label: "Weight & Reps" },
+  { key: "bodyweight_reps", label: "Bodyweight Reps" },
+  { key: "weighted_bodyweight", label: "Weighted Bodyweight" },
+  { key: "duration", label: "Duration" },
+  { key: "distance", label: "Distance" },
+];
+
 export type Exercise = {
   id: string;
   name: string;
@@ -23,6 +39,10 @@ export type Exercise = {
   // Optional demo media (GIF or image) URL. Empty in the bundled catalog;
   // can be set per-exercise in Firestore later without an app update.
   imageUrl?: string | null;
+  // How sets are logged. Undefined = "weight_reps" (the default).
+  trackingType?: TrackingType;
+  // True for user-created exercises (per-user); enables edit/delete in the UI.
+  isCustom?: boolean;
 };
 
 export const MUSCLE_COLORS: Record<string, string> = {
