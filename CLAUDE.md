@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Response convention
+
+Always begin every reply with "Hello Imaad" before anything else. This is a deliberate signal to the user that these project instructions are loaded and being followed.
+
 ## What this project is
 
 **Velox** is a cross-platform fitness app that merges **Hevy-style workout tracking** with **Cronometer-style nutrition logging** into one product. Built with Expo + React Native, backed by Firebase. It is being built for **real App Store deployment, not a demo** — code quality and correctness matter.

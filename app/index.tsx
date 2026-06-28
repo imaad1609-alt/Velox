@@ -1,19 +1,16 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
+import { MacroBar } from "../components/MacroBar";
 import { enterDown } from "../constants/motion";
 import { COLORS, FONTS, RADIUS, SPACING } from "../constants/theme";
+import { DEFAULT_GOALS, getGoals, NutritionGoals } from "../utils/goals";
+import { dayKey, DiaryTotals, getDiaryForDay, sumTotals } from "../utils/nutrition";
 import { getWorkouts, SavedWorkout } from "../utils/workouts";
 
-const CALORIES_EATEN = 1840;
-const CALORIES_GOAL = 2500;
-const MACROS = [
-  { name: "Protein", current: 120, goal: 180 },
-  { name: "Carbs", current: 200, goal: 250 },
-  { name: "Fat", current: 45, goal: 80 },
-];
+const ZERO_TOTALS: DiaryTotals = { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -26,36 +23,6 @@ const getDate = () => {
   return new Date().toLocaleDateString("en-US", {
     weekday: "long", month: "long", day: "numeric",
   });
-};
-
-const MacroBar = ({ name, current, goal, delay }: any) => {
-  const pct = Math.min(100, Math.round((current / goal) * 100));
-  const progress = useSharedValue(0);
-  useEffect(() => {
-    progress.value = withDelay(delay, withTiming(1, { duration: 700 }));
-  }, []);
-  const fillStyle = useAnimatedStyle(() => ({ width: `${pct * progress.value}%` }));
-  return (
-    <View style={{ marginBottom: 18 }}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 7 }}>
-        <Text style={styles.macroLabel}>{name}</Text>
-        <Text style={styles.macroValue}>
-          {current}g <Text style={styles.macroGoal}>/ {goal}g</Text>
-        </Text>
-      </View>
-      {/* Cobalt → Lime "charging" gradient fill (spec progress bars) */}
-      <View style={styles.barBg}>
-        <Animated.View style={[{ height: "100%" }, fillStyle]}>
-          <LinearGradient
-            colors={[COLORS.secondary, COLORS.primary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.barFill}
-          />
-        </Animated.View>
-      </View>
-    </View>
-  );
 };
 
 const num = (s: string) => {
@@ -81,15 +48,25 @@ const workoutVolume = (w: SavedWorkout) => {
   return Math.round(v);
 };
 
-const getMacroWarning = () => {
-  const caloriePace = CALORIES_EATEN / CALORIES_GOAL;
-  const warnings = MACROS.filter(m => (m.current / m.goal) < caloriePace - 0.15);
+// Flag a macro the user is lagging on relative to how far through their calorie
+// goal they are. Operates on the live day totals + the saved goals.
+const getMacroWarning = (totals: DiaryTotals, goals: NutritionGoals) => {
+  if (goals.calories <= 0) return null;
+  const caloriePace = totals.calories / goals.calories;
+  const macros = [
+    { name: "Protein", current: totals.protein, goal: goals.protein },
+    { name: "Carbs", current: totals.carbs, goal: goals.carbs },
+    { name: "Fat", current: totals.fat, goal: goals.fat },
+  ];
+  const warnings = macros.filter((m) => m.goal > 0 && m.current / m.goal < caloriePace - 0.15);
   if (warnings.length === 0) return null;
-  return `Low on ${warnings.map(w => w.name).join(" & ")} for your calorie intake`;
+  return `Low on ${warnings.map((w) => w.name).join(" & ")} for your calorie intake`;
 };
 
 export default function Dashboard() {
   const [lastWorkout, setLastWorkout] = useState<SavedWorkout | null>(null);
+  const [totals, setTotals] = useState<DiaryTotals>(ZERO_TOTALS);
+  const [goals, setGoals] = useState<NutritionGoals>(DEFAULT_GOALS);
 
   // Show the most recent workout on the card. On any error just keep the empty
   // state — the dashboard should never block on history loading.
@@ -101,9 +78,37 @@ export default function Dashboard() {
     return () => { alive = false; };
   }, []);
 
-  const caloriePercent = Math.round((CALORIES_EATEN / CALORIES_GOAL) * 100);
-  const remaining = CALORIES_GOAL - CALORIES_EATEN;
-  const macroWarning = getMacroWarning();
+  // Today's nutrition totals + goals. Re-fetched whenever the tab regains focus
+  // so a food logged on the nutrition tab shows up here. On any error keep the
+  // zero totals / default goals — never crash the dashboard.
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      const today = dayKey(new Date());
+      Promise.all([getDiaryForDay(today), getGoals()])
+        .then(([entries, g]) => {
+          if (!alive) return;
+          setTotals(sumTotals(entries));
+          setGoals(g);
+        })
+        .catch(() => {
+          if (!alive) return;
+          setTotals(ZERO_TOTALS);
+          setGoals(DEFAULT_GOALS);
+        });
+      return () => { alive = false; };
+    }, [])
+  );
+
+  const caloriesEaten = Math.round(totals.calories);
+  const caloriePercent = goals.calories > 0 ? Math.round((caloriesEaten / goals.calories) * 100) : 0;
+  const remaining = goals.calories - caloriesEaten;
+  const macroWarning = getMacroWarning(totals, goals);
+  const macros = [
+    { name: "Protein", current: totals.protein, goal: goals.protein },
+    { name: "Carbs", current: totals.carbs, goal: goals.carbs },
+    { name: "Fat", current: totals.fat, goal: goals.fat },
+  ];
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -123,14 +128,14 @@ export default function Dashboard() {
             <View style={styles.calorieRingContainer}>
               <View style={styles.ringOuter}>
                 <View style={styles.ringInner}>
-                  <Text style={styles.ringNumber}>{CALORIES_EATEN.toLocaleString()}</Text>
+                  <Text style={styles.ringNumber}>{caloriesEaten.toLocaleString()}</Text>
                   <Text style={styles.ringLabel}>KCAL EATEN</Text>
                 </View>
               </View>
             </View>
             <View style={styles.calorieStatsRow}>
               <View style={styles.calorieStat}>
-                <Text style={styles.calorieStatNum}>{CALORIES_GOAL.toLocaleString()}</Text>
+                <Text style={styles.calorieStatNum}>{goals.calories.toLocaleString()}</Text>
                 <Text style={styles.calorieStatLabel}>Goal</Text>
               </View>
               <View style={[styles.calorieStat, styles.calorieStatMiddle]}>
@@ -158,7 +163,7 @@ export default function Dashboard() {
         <TouchableOpacity onPress={() => router.push("/nutrition")} activeOpacity={0.85}>
           <LinearGradient colors={[COLORS.surface1, "#161618"]} style={styles.card} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
             <Text style={styles.cardTitle}>Macros · Tap to log</Text>
-            {MACROS.map((m, i) => (
+            {macros.map((m, i) => (
               <MacroBar key={m.name} {...m} delay={300 + i * 150} />
             ))}
           </LinearGradient>
@@ -216,11 +221,6 @@ const styles = StyleSheet.create({
   calorieStatLabel: { fontFamily: FONTS.mono, fontSize: 10, color: COLORS.textMuted, marginTop: 4, textTransform: "uppercase", letterSpacing: 0.5 },
   warningCard: { marginHorizontal: SPACING.md, marginBottom: 12, backgroundColor: "rgba(255, 204, 0, 0.08)", borderRadius: RADIUS.md, padding: 12, borderWidth: 1, borderColor: COLORS.warning },
   warningText: { fontFamily: FONTS.body, color: COLORS.warning, fontSize: 13 },
-  barBg: { height: 8, backgroundColor: COLORS.base, borderRadius: RADIUS.sm, overflow: "hidden" },
-  barFill: { flex: 1, borderRadius: RADIUS.sm },
-  macroLabel: { fontFamily: FONTS.bodySemiBold, fontSize: 15, color: COLORS.text },
-  macroValue: { fontFamily: FONTS.mono, fontSize: 13, color: COLORS.text },
-  macroGoal: { fontFamily: FONTS.mono, color: COLORS.textMuted },
   workoutCard: { borderLeftWidth: 3, borderLeftColor: COLORS.primary },
   workoutRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   workoutIcon: { width: 48, height: 48, borderRadius: RADIUS.md, backgroundColor: COLORS.base, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: COLORS.border },
