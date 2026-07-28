@@ -39,6 +39,10 @@ serviceAccountKey.json
 # typescript
 *.tsbuildinfo
 
+# Python (skill scripts under .claude/skills)
+__pycache__/
+*.pyc
+
 app-example
 
 # generated native folders
